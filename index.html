@@ -188,7 +188,7 @@ function draw(matrix,canvas,scale){
 }
 
 // ── Ana kod ──────────────────────────────────────────────
-var url=location.origin+'/canli-yayin/qr-live-stream.html?join=1';
+var base=location.href.replace(/index\.html.*$/,'').replace(/\?.*$/,'');var url=base.replace(/\/$/,'')+'/qr-live-stream.html?join=1';
 document.getElementById('url-label').textContent=url;
 try{
   var mat=generate(url);
