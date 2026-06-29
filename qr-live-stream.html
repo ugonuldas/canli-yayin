@@ -150,7 +150,7 @@ const BIN_ID  = '6a420559da38895dfe0e337a';
 const BIN_KEY = '$2a$10$RsfQ/mvF/E6DCqH8pVzk8uRlG4HGVvn1.PS/PMa1jofyEnCqmmA1u';
 const BIN_ACCESS_KEY = '$2a$10$0cqUVcz2dFXZSEhdM7NR8O8VxGB269KKpA8caav9UtGXFJrznAD8C';
 const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const UNLIKE_THRESHOLD = (n) => 1; // TEST MODU — 1 unlike yeterli
+const UNLIKE_THRESHOLD = (n) => Math.max(3, Math.ceil(n * 2 / 3));
 
 // ── STATE ─────────────────────────────────────────────────
 let peer = null, localStream = null;
