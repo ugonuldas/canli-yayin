@@ -139,6 +139,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 // ── CONFIG ────────────────────────────────────────────────
 const BIN_ID  = '6a420559da38895dfe0e337a';
 const BIN_KEY = '$2a$10$RsfQ/mvF/E6DCqH8pVzk8uRlG4HGVvn1.PS/PMa1jofyEnCqmmA1u';
+const BIN_ACCESS_KEY = '$2a$10$0cqUVcz2dFXZSEhdM7NR8O8VxGB269KKpA8caav9UtGXFJrznAD8C';
 const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 const UNLIKE_THRESHOLD = (n) => Math.max(3, Math.ceil(n * 2 / 3));
 
@@ -176,7 +177,7 @@ function reset() {
 // ── JSONBIN ───────────────────────────────────────────────
 async function binGet() {
   const r = await fetch(BIN_URL + '/latest', {
-    headers: { 'X-Master-Key': BIN_KEY }
+    headers: { 'X-Master-Key': BIN_KEY, 'X-Access-Key': BIN_ACCESS_KEY }
   });
   const d = await r.json();
   return d.record;
@@ -184,7 +185,7 @@ async function binGet() {
 async function binSet(data) {
   await fetch(BIN_URL, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY },
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY, 'X-Access-Key': BIN_ACCESS_KEY },
     body: JSON.stringify(data)
   });
 }
