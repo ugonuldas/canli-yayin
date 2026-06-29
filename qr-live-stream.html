@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>QR Canlı Yayın</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -22,13 +21,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 #screen-home{gap:1.5rem;padding:2rem;text-align:center}
 .logo-ring{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto;box-shadow:0 0 32px #6d28d940}
 #screen-home h1{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;background:linear-gradient(135deg,#c4b5fd 0%,#93c5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-#screen-home p{color:var(--muted);font-size:0.95rem;max-width:280px;line-height:1.6}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.85rem 2rem;border-radius:12px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .18s,transform .15s;-webkit-tap-highlight-color:transparent}
-.btn:active{transform:scale(0.97)}
-.btn:disabled{opacity:0.4;cursor:not-allowed}
+#screen-home p{color:var(--muted);font-size:.95rem;max-width:280px;line-height:1.6}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem 2rem;border-radius:12px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .18s,transform .15s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:100%;max-width:280px;box-shadow:0 4px 24px #6d28d930}
 .btn-primary:hover:not(:disabled){opacity:.88}
-.btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--muted);width:100%;max-width:280px}
 .btn-danger{background:#1a0a0a;border:1px solid var(--danger);color:var(--danger);font-size:.875rem;padding:.6rem 1.4rem;border-radius:10px}
 
 /* CONNECTING */
@@ -38,10 +37,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 .spinner{width:48px;height:48px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* LOBBY — kimse yoksa */
-#screen-lobby{gap:1.5rem;padding:2rem;text-align:center}
-#screen-lobby h2{font-size:1.2rem;font-weight:700}
-#screen-lobby p{color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6}
+/* QR SCREEN */
+#screen-qr{gap:1.5rem;padding:2rem;text-align:center}
+#screen-qr h2{font-size:1.2rem;font-weight:700}
+#screen-qr p{color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6}
+#qr-canvas{border-radius:16px;background:#fff;padding:12px}
 
 /* BROADCAST */
 #screen-broadcast{padding:0;position:relative;background:#000;justify-content:flex-end}
@@ -53,7 +53,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 .broadcast-stats{display:flex;gap:1.2rem;align-items:center}
 .stat{color:rgba(255,255,255,.75);font-size:.875rem;font-weight:500}
 .stat span{font-weight:700;color:#fff}
-/* unlike warning bar */
 .unlike-bar-wrap{width:100%;max-width:260px}
 .unlike-bar-label{font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:4px;text-align:left}
 .unlike-bar-bg{background:rgba(255,255,255,.12);border-radius:4px;height:5px;overflow:hidden}
@@ -92,24 +91,24 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 <div id="screen-home" class="screen active">
   <div class="logo-ring">📡</div>
   <h1>QR Canlı<br>Yayın</h1>
-  <p>QR kodu okut. Biri yayındaysa izle, yoksa sen başlat.</p>
-  <button class="btn btn-primary" onclick="enterRoom()">▶ Odaya Gir</button>
+  <p>Yayın başlat, QR kodu paylaş. İzleyiciler kameranı anında görür.</p>
+  <button class="btn btn-primary" onclick="startBroadcast()">▶ Yayına Başla</button>
 </div>
 
 <!-- CONNECTING -->
 <div id="screen-connecting" class="screen">
   <div class="spinner"></div>
-  <h2 id="connecting-msg">Bağlanılıyor…</h2>
-  <p id="connecting-sub">Oda kontrol ediliyor</p>
+  <h2 id="conn-msg">Bağlanılıyor…</h2>
+  <p id="conn-sub"></p>
 </div>
 
-<!-- LOBBY (kimse yayın yapmıyor) -->
-<div id="screen-lobby" class="screen">
-  <div class="logo-ring" style="font-size:1.5rem">😴</div>
-  <h2>Şu an yayın yok</h2>
-  <p>Odada aktif bir yayın bulunamadı. İstersen sen başlatabilirsin.</p>
-  <button class="btn btn-primary" onclick="openCamera()">📷 Yayına Başla</button>
-  <button class="btn btn-ghost" onclick="waitForBroadcast()">👁 Bekle, biri başlatacak</button>
+<!-- QR (yayıncı QR'ı gösterir, izleyici bekler) -->
+<div id="screen-qr" class="screen">
+  <h2>QR Kodu Paylaş</h2>
+  <p>İzleyiciler bu kodu okutunca canlı görüntüne bağlanır</p>
+  <canvas id="qr-canvas"></canvas>
+  <button class="btn btn-primary" id="btn-cam" onclick="openCamera()">📷 Kamerayı Aç</button>
+  <button class="btn btn-danger" onclick="reset()" style="margin-top:.25rem">İptal</button>
 </div>
 
 <!-- BROADCAST -->
@@ -128,7 +127,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
       <div class="unlike-bar-label" id="unlike-bar-label">💔 Oy baskısı</div>
       <div class="unlike-bar-bg"><div class="unlike-bar-fill" id="unlike-bar-fill" style="width:0%"></div></div>
     </div>
-    <button class="btn btn-danger" onclick="stopBroadcast(true)">⬛ Yayını Bitir</button>
+    <button class="btn btn-danger" onclick="stopBroadcast()">⬛ Yayını Bitir</button>
   </div>
 </div>
 
@@ -168,40 +167,26 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 <script>
 'use strict';
 
-// ── SABİT ROOM ID ─────────────────────────────────────────
-// Netlify URL'nize göre değiştirin veya olduğu gibi bırakın
-const ROOM_ID = 'qlv-main-room-v1';
+// ── Unlike eşiği ─────────────────────────────────────────
+const UNLIKE_THRESHOLD = (n) => Math.max(3, Math.ceil(n * 2 / 3));
 
-// Unlike eşiği: max(3, izleyici_sayısının_2/3'ü)
-const UNLIKE_THRESHOLD = (viewerCount) => Math.max(3, Math.ceil(viewerCount * 2 / 3));
-
-// ── STATE ─────────────────────────────────────────────────
-let peer = null;
-let localStream = null;
-let dataChannels = {}; // peerId → dataChannel (yayıncı tarafı)
-let broadcasterConn = null; // izleyici tarafı data channel
-let viewerCalls = {};
-let viewerCount = 0;
-let likes = 0;
-let unlikes = 0;
-let myReaction = null; // 'like' | 'unlike' | null
+// ── State ─────────────────────────────────────────────────
+let peer = null, localStream = null;
+let dataChannels = {}, viewerCalls = {};
+let broadcasterConn = null;
+let viewerCount = 0, likes = 0, unlikes = 0, myReaction = null;
 let retryTimer = null;
-let isBroadcaster = false;
 
-// ── UI UTILS ──────────────────────────────────────────────
+// ── UI ────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
 }
-
-function toast(msg, duration = 2800) {
+function toast(msg, dur = 2800) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), duration);
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), dur);
 }
-
 function showError(title, msg) {
   document.getElementById('err-title').textContent = title;
   document.getElementById('err-msg').textContent = msg;
@@ -212,383 +197,338 @@ function reset() {
   if (retryTimer) clearTimeout(retryTimer);
   if (localStream) localStream.getTracks().forEach(t => t.stop());
   if (peer) { try { peer.destroy(); } catch(e){} }
-  peer = null; localStream = null; dataChannels = {}; broadcasterConn = null;
-  viewerCalls = {}; viewerCount = 0; likes = 0; unlikes = 0; myReaction = null;
-  isBroadcaster = false;
+  peer = null; localStream = null; dataChannels = {}; viewerCalls = {};
+  broadcasterConn = null; viewerCount = 0; likes = 0; unlikes = 0; myReaction = null;
   show('home');
 }
 
-// ── PEER FACTORY ──────────────────────────────────────────
+// ── QR Üretici (sıfırdan, CDN yok) ───────────────────────
+var GFexp=[],GFlog=[];
+(function(){var x=1;for(var i=0;i<256;i++){GFexp[i]=x;GFlog[x]=i;x<<=1;if(x&256)x^=285;}GFexp[256]=GFexp[0];})();
+function gfMul(a,b){if(!a||!b)return 0;return GFexp[(GFlog[a]+GFlog[b])%255];}
+function gfPoly(e){var p=[1];for(var i=0;i<e;i++){var r=new Array(p.length+1).fill(0);for(var j=0;j<p.length;j++){r[j]^=gfMul(p[j],1);r[j+1]^=gfMul(p[j],GFexp[i]);}p=r;}return p;}
+function rsEncode(data,n){var g=gfPoly(n),msg=data.concat(new Array(n).fill(0));for(var i=0;i<data.length;i++){var c=msg[i];if(c)for(var j=0;j<g.length;j++)msg[i+j]^=gfMul(g[j],c);}return msg.slice(data.length);}
+
+var CAP_M=[25,47,77,114,154,195,224,279,335,395];
+var DC_M=[19,34,55,80,108,136,156,194,232,274];
+var EC_M=[[10,1],[16,1],[26,1],[36,2],[48,2],[64,4],[72,4],[88,4],[110,5],[130,5]];
+var ALIGN=[[],[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,28,46]];
+var FMT_M=[21522,20773,24188,23371,17913,16590,20375,19104];
+
+function makeQR(text) {
+  var bytes=[]; for(var i=0;i<text.length;i++) bytes.push(text.charCodeAt(i)&255);
+  var ver=1; for(;ver<=10;ver++) if(CAP_M[ver-1]>=bytes.length) break;
+  if(ver>10) throw 'too long';
+
+  // Encode
+  var bits=[];
+  function addBits(v,l){for(var i=l-1;i>=0;i--)bits.push((v>>i)&1);}
+  addBits(4,4); addBits(bytes.length,8);
+  for(var i=0;i<bytes.length;i++) addBits(bytes[i],8);
+  for(var i=0;i<4&&bits.length<DC_M[ver-1]*8;i++) bits.push(0);
+  while(bits.length%8) bits.push(0);
+  var pad=[236,17],pi=0;
+  while(bits.length<DC_M[ver-1]*8){addBits(pad[pi++%2],8);}
+  var data=[]; for(var i=0;i<bits.length;i+=8){var b=0;for(var j=0;j<8;j++)b=(b<<1)|(bits[i+j]||0);data.push(b);}
+
+  // RS blocks
+  var ecp=EC_M[ver-1][0],blks=EC_M[ver-1][1];
+  var sl=Math.floor(DC_M[ver-1]/blks),ex=DC_M[ver-1]%blks;
+  var db=[],eb=[],idx=0;
+  for(var b=0;b<blks;b++){var l=sl+(b>=blks-ex?1:0);db.push(data.slice(idx,idx+l));idx+=l;eb.push(rsEncode(db[b],ecp));}
+  var cw=[];
+  var mx=Math.max.apply(null,db.map(function(x){return x.length;}));
+  for(var i=0;i<mx;i++) for(var b=0;b<blks;b++) if(i<db[b].length) cw.push(db[b][i]);
+  for(var i=0;i<ecp;i++) for(var b=0;b<blks;b++) cw.push(eb[b][i]);
+
+  // Matrix
+  var sz=ver*4+17;
+  var m=Array.from({length:sz},function(){return new Array(sz).fill(null);});
+  function setBlock(r,c,pat){for(var i=0;i<pat.length;i++)for(var j=0;j<pat[i].length;j++)if(r+i>=0&&r+i<sz&&c+j>=0&&c+j<sz)m[r+i][c+j]=pat[i][j];}
+  var finder=[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]];
+  setBlock(0,0,finder); setBlock(0,sz-7,finder); setBlock(sz-7,0,finder);
+  function rsv(r,c){if(r>=0&&r<sz&&c>=0&&c<sz&&m[r][c]===null)m[r][c]=2;}
+  for(var i=0;i<8;i++){rsv(7,i);rsv(i,7);rsv(7,sz-8+i);rsv(i,sz-8);rsv(sz-8+i,7);rsv(sz-7,i);}
+  for(var i=0;i<6;i++){rsv(8,i);rsv(i,8);}rsv(8,7);rsv(8,8);rsv(7,8);
+  for(var i=0;i<8;i++){rsv(8,sz-8+i);rsv(sz-8+i,8);}
+  for(var i=8;i<sz-8;i++){if(m[6][i]===null)m[6][i]=i%2?0:1;if(m[i][6]===null)m[i][6]=i%2?0:1;}
+  var ac=ALIGN[ver-1];
+  var ap=[[1,1,1,1,1],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,0,1],[1,1,1,1,1]];
+  for(var a=0;a<ac.length;a++)for(var b2=0;b2<ac.length;b2++){if(m[ac[a]][ac[b2]]!==null)continue;setBlock(ac[a]-2,ac[b2]-2,ap);}
+
+  // Place data
+  var cbits=[]; for(var i=0;i<cw.length;i++) for(var b=7;b>=0;b--) cbits.push((cw[i]>>b)&1);
+  var bi=0,up=true;
+  for(var col=sz-1;col>=0;col-=2){
+    if(col===6)col--;
+    for(var row=0;row<sz;row++){var r=up?sz-1-row:row;for(var c=col;c>=col-1;c--){if(m[r][c]===null)m[r][c]=bi<cbits.length?cbits[bi++]:0;}}
+    up=!up;
+  }
+
+  // Best mask
+  var masks=[
+    function(r,c){return(r+c)%2===0;},function(r,c){return r%2===0;},
+    function(r,c){return c%3===0;},function(r,c){return(r+c)%3===0;},
+    function(r,c){return(Math.floor(r/2)+Math.floor(c/3))%2===0;},
+    function(r,c){return(r*c)%2+(r*c)%3===0;},
+    function(r,c){return((r*c)%2+(r*c)%3)%2===0;},
+    function(r,c){return((r+c)%2+(r*c)%3)%2===0;}
+  ];
+  function applyMask(base,mi){
+    var mm=base.map(function(row){return row.slice();});
+    var fn=masks[mi];
+    for(var r=0;r<sz;r++)for(var c=0;c<sz;c++)if(mm[r][c]===0||mm[r][c]===1)mm[r][c]=fn(r,c)?1-mm[r][c]:mm[r][c];
+    var fmt=FMT_M[mi],fi=0,fb=[];for(var i=14;i>=0;i--)fb.push((fmt>>i)&1);
+    for(var i=0;i<=5;i++){mm[8][i]=fb[fi];mm[i][8]=fb[14-fi];fi++;}
+    mm[8][7]=fb[fi];mm[7][8]=fb[14-fi];fi++;mm[8][8]=fb[fi];fi++;
+    for(var i=9;i<=14;i++){mm[8][sz-15+i]=fb[fi];mm[sz-15+i][8]=fb[14-fi];fi++;}
+    mm[sz-8][8]=1; return mm;
+  }
+  function score(mm){
+    var s=0;
+    for(var r=0;r<sz;r++){var run=1;for(var c=1;c<sz;c++){if(mm[r][c]===mm[r][c-1])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
+    for(var c=0;c<sz;c++){var run=1;for(var r=0;r<sz;r++){if(r>0){if(mm[r][c]===mm[r-1][c])run++;else{if(run>=5)s+=run-2;run=1;}}}}
+    for(var r=0;r<sz-1;r++)for(var c=0;c<sz-1;c++)if(mm[r][c]===mm[r][c+1]&&mm[r][c]===mm[r+1][c]&&mm[r][c]===mm[r+1][c+1])s+=3;
+    return s;
+  }
+  var bestM=null,bestS=Infinity;
+  for(var mi=0;mi<8;mi++){var mm=applyMask(m,mi);var sc=score(mm);if(sc<bestS){bestS=sc;bestM=mm;}}
+  return bestM;
+}
+
+function drawQR(matrix, canvas, scale) {
+  scale = scale || 7;
+  var sz = matrix.length, q = 3;
+  var total = (sz + q*2) * scale;
+  canvas.width = total; canvas.height = total;
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,total,total);
+  ctx.fillStyle = '#000';
+  for(var r=0;r<sz;r++) for(var c=0;c<sz;c++)
+    if(matrix[r][c]===1) ctx.fillRect((c+q)*scale,(r+q)*scale,scale,scale);
+}
+
+// ── PeerJS ────────────────────────────────────────────────
 function makePeer(id) {
-  const opts = {
+  var opts = {
     debug: 0,
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    }
+    config: { iceServers: [
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'}
+    ]}
   };
   if (id) opts.id = id;
   return new Peer(opts);
 }
 
-// ── ENTER ROOM (oda kontrolü) ─────────────────────────────
-function enterRoom() {
+// ── BROADCASTER ───────────────────────────────────────────
+function startBroadcast() {
   if (typeof Peer === 'undefined') {
-    showError('Kütüphane Yüklenemedi', 'PeerJS yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
+    showError('Kütüphane Yüklenemedi', 'Sayfayı yenileyip tekrar dene.');
     return;
   }
   show('connecting');
-  document.getElementById('connecting-msg').textContent = 'Oda kontrol ediliyor…';
-  document.getElementById('connecting-sub').textContent = 'Aktif yayın aranıyor';
+  document.getElementById('conn-msg').textContent = 'Sunucuya bağlanılıyor…';
 
-  // ROOM_ID ile peer aç:
-  // → 'open' gelirse: kimse yok → lobby
-  // → 'unavailable-id' gelirse: biri yayında → izleyici ol
-  const probe = makePeer(ROOM_ID);
-  let resolved = false;
+  peer = makePeer(null); // rastgele ID al
 
-  probe.on('open', () => {
-    if (resolved) return;
-    resolved = true;
-    // Kimse yok, yayıncı olmak isterse diye lobby'e git
-    // Ama önce bu peer'ı kapat (yayıncı olmak isterse yeniden açar)
-    try { probe.destroy(); } catch(e) {}
-    show('lobby');
-  });
+  peer.on('open', (id) => {
+    // QR URL: bu sayfa + ?v=ID
+    const base = location.href.split('?')[0];
+    const url = base + '?v=' + id;
 
-  probe.on('error', (err) => {
-    if (resolved) return;
-    resolved = true;
-    if (err.type === 'unavailable-id') {
-      // Biri zaten ROOM_ID'yi tutmuş → yayın var → izleyici ol
-      try { probe.destroy(); } catch(e) {}
-      joinAsViewer();
-    } else {
-      try { probe.destroy(); } catch(e) {}
-      showError('Bağlantı Hatası', 'Sunucuya ulaşılamadı (' + err.type + '). İnternet bağlantını kontrol et.');
-    }
-  });
-
-  setTimeout(() => {
-    if (!resolved) {
-      resolved = true;
-      try { probe.destroy(); } catch(e) {}
-      show('lobby');
-    }
-  }, 6000);
-}
-
-// ── BROADCASTER ───────────────────────────────────────────
-async function openCamera() {
-  show('connecting');
-  document.getElementById('connecting-msg').textContent = 'Kamera açılıyor…';
-  document.getElementById('connecting-sub').textContent = '';
-
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: true
-    });
-  } catch(e1) {
+    // QR çiz
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    } catch(e2) {
-      showError('Kamera İzni Reddedildi', 'Tarayıcı ayarlarından kamera iznini ver. (' + e2.message + ')');
-      return;
+      const mat = makeQR(url);
+      drawQR(mat, document.getElementById('qr-canvas'), 6);
+    } catch(e) {
+      console.error('QR hata:', e);
     }
-  }
 
-  isBroadcaster = true;
-  document.getElementById('connecting-msg').textContent = 'Yayın başlatılıyor…';
-  document.getElementById('connecting-sub').textContent = 'Sinyal sunucusuna bağlanılıyor';
-
-  peer = makePeer(ROOM_ID);
-
-  peer.on('open', () => {
-    document.getElementById('local-video').srcObject = localStream;
-    show('broadcast');
-    toast('Yayın başladı! 🎥');
+    show('qr');
   });
 
-  // İzleyici video isteği
   peer.on('call', (call) => {
+    if (!localStream) { call.close(); return; }
     call.answer(localStream);
-    const vid = call.peer;
-    viewerCalls[vid] = call;
-    viewerCount++;
-    updateBroadcastStats();
-
-    call.on('close', () => { delete viewerCalls[vid]; viewerCount = Math.max(0, viewerCount-1); updateBroadcastStats(); });
-    call.on('error', () => { delete viewerCalls[vid]; viewerCount = Math.max(0, viewerCount-1); updateBroadcastStats(); });
+    registerViewer(call);
   });
 
-  // İzleyici data channel (like/unlike)
   peer.on('connection', (conn) => {
     const vid = conn.peer;
     dataChannels[vid] = conn;
-
-    conn.on('data', (data) => {
-      handleReactionFromViewer(vid, data);
-    });
-
-    conn.on('close', () => { delete dataChannels[vid]; });
+    conn.on('data', (data) => handleReaction(vid, data));
+    conn.on('close', () => delete dataChannels[vid]);
   });
 
   peer.on('error', (err) => {
-    if (err.type === 'unavailable-id') {
-      showError('Oda Dolu', 'Başka biri şu an yayın yapıyor. Sayfayı yenileyip izleyici olarak gir.');
-    } else {
-      showError('Yayın Hatası', 'Bağlantı kesildi (' + err.type + ').');
-    }
+    if (err.type === 'peer-unavailable') return;
+    showError('Bağlantı Hatası', 'Sunucuya ulaşılamadı: ' + err.type);
   });
-
   peer.on('disconnected', () => { try { peer.reconnect(); } catch(e){} });
 }
 
-function handleReactionFromViewer(viewerId, data) {
+function registerViewer(call) {
+  const vid = call.peer;
+  viewerCalls[vid] = call;
+  viewerCount++;
+  updateStats();
+  toast('Yeni izleyici bağlandı 👁');
+  call.on('close', () => { delete viewerCalls[vid]; viewerCount=Math.max(0,viewerCount-1); updateStats(); });
+  call.on('error', () => { delete viewerCalls[vid]; viewerCount=Math.max(0,viewerCount-1); updateStats(); });
+}
+
+function handleReaction(vid, data) {
   if (!data || !data.type) return;
-
-  if (data.type === 'like') {
-    if (data.prev === 'unlike') unlikes = Math.max(0, unlikes - 1);
-    likes++;
-  } else if (data.type === 'unlike') {
-    if (data.prev === 'like') likes = Math.max(0, likes - 1);
-    unlikes++;
-  } else if (data.type === 'remove-like') {
-    likes = Math.max(0, likes - 1);
-  } else if (data.type === 'remove-unlike') {
-    unlikes = Math.max(0, unlikes - 1);
-  }
-
-  updateBroadcastStats();
-  broadcastStats();
-  checkUnlikeThreshold();
+  if (data.type === 'like') { if(data.prev==='unlike') unlikes=Math.max(0,unlikes-1); likes++; }
+  else if (data.type === 'unlike') { if(data.prev==='like') likes=Math.max(0,likes-1); unlikes++; }
+  else if (data.type === 'remove-like') likes=Math.max(0,likes-1);
+  else if (data.type === 'remove-unlike') unlikes=Math.max(0,unlikes-1);
+  updateStats(); broadcastStats(); checkThreshold();
 }
 
 function broadcastStats() {
-  const msg = { type: 'stats', likes, unlikes, viewers: viewerCount };
-  Object.values(dataChannels).forEach(conn => {
-    try { conn.send(msg); } catch(e) {}
-  });
+  const msg = {type:'stats', likes, unlikes, viewers:viewerCount};
+  Object.values(dataChannels).forEach(c => { try{c.send(msg);}catch(e){} });
 }
 
-function updateBroadcastStats() {
+function updateStats() {
   document.getElementById('b-viewers').textContent = viewerCount;
   document.getElementById('b-likes').textContent = likes;
   document.getElementById('b-unlikes').textContent = unlikes;
-
-  const threshold = UNLIKE_THRESHOLD(viewerCount);
+  const thr = UNLIKE_THRESHOLD(viewerCount);
   const wrap = document.getElementById('unlike-bar-wrap');
-  const fill = document.getElementById('unlike-bar-fill');
-  const label = document.getElementById('unlike-bar-label');
-
-  if (unlikes > 0) {
+  if (unlikes > 0 && viewerCount > 0) {
     wrap.style.display = 'block';
-    const pct = Math.min(100, Math.round((unlikes / threshold) * 100));
-    fill.style.width = pct + '%';
-    label.textContent = '💔 ' + unlikes + ' / ' + threshold + ' (yayın düşme eşiği)';
-  } else {
-    wrap.style.display = 'none';
-  }
+    document.getElementById('unlike-bar-fill').style.width = Math.min(100,Math.round(unlikes/thr*100))+'%';
+    document.getElementById('unlike-bar-label').textContent = '💔 '+unlikes+' / '+thr+' (yayın düşme eşiği)';
+  } else { wrap.style.display = 'none'; }
 }
 
-function checkUnlikeThreshold() {
-  const threshold = UNLIKE_THRESHOLD(viewerCount);
-  if (unlikes >= threshold && viewerCount > 0) {
-    // Yayıncıya bildir ve yayını kapat
-    Object.values(dataChannels).forEach(conn => {
-      try { conn.send({ type: 'broadcast-killed' }); } catch(e) {}
-    });
-    stopBroadcast(false);
+function checkThreshold() {
+  const thr = UNLIKE_THRESHOLD(viewerCount);
+  if (viewerCount > 0 && unlikes >= thr) {
+    Object.values(dataChannels).forEach(c => { try{c.send({type:'broadcast-killed'});}catch(e){} });
+    stopBroadcast();
     toast('💔 İzleyiciler yayını düşürdü!', 4000);
   }
 }
 
-function stopBroadcast(manual) {
-  if (localStream) localStream.getTracks().forEach(t => t.stop());
-  if (peer) { try { peer.destroy(); } catch(e){} }
-  peer = null; localStream = null; dataChannels = {}; viewerCalls = {};
-  viewerCount = 0; likes = 0; unlikes = 0; isBroadcaster = false;
-  if (manual) toast('Yayın sona erdi.', 2500);
+async function openCamera() {
+  const btn = document.getElementById('btn-cam');
+  btn.disabled = true; btn.textContent = '⏳ Kamera açılıyor…';
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true
+    });
+  } catch(e1) {
+    try { localStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true}); }
+    catch(e2) {
+      btn.disabled=false; btn.textContent='📷 Kamerayı Aç';
+      showError('Kamera İzni Reddedildi', e2.message); return;
+    }
+  }
+  document.getElementById('local-video').srcObject = localStream;
+
+  // Bekleyen izleyicilere cevap ver
+  peer.on('call', (call) => { call.answer(localStream); registerViewer(call); });
+
+  show('broadcast'); toast('Yayın başladı! 🎥');
+}
+
+function stopBroadcast() {
+  if (localStream) localStream.getTracks().forEach(t=>t.stop());
+  if (peer) { try{peer.destroy();}catch(e){} }
+  peer=null; localStream=null; dataChannels={}; viewerCalls={};
+  viewerCount=0; likes=0; unlikes=0;
   show('home');
 }
 
 // ── VIEWER ────────────────────────────────────────────────
-function joinAsViewer() {
+function joinAsViewer(broadcasterId) {
   show('waiting');
   peer = makePeer(null);
 
   peer.on('open', () => {
-    // Data channel aç (like/unlike için)
-    broadcasterConn = peer.connect(ROOM_ID, { reliable: true });
-    broadcasterConn.on('open', () => {
-      // Bağlantı açık, şimdi video isteği gönder
-      callBroadcaster(0);
-    });
-    broadcasterConn.on('data', (data) => {
-      handleStatsFromBroadcaster(data);
-    });
-    broadcasterConn.on('error', () => {});
-    broadcasterConn.on('close', () => {
-      showError('Yayın Bitti', 'Yayıncı yayını kapattı.');
-    });
-  });
-
-  peer.on('error', (err) => {
-    if (err.type !== 'peer-unavailable') {
-      showError('Bağlantı Hatası', 'Sunucuya ulaşılamadı (' + err.type + ').');
-    }
-  });
-  peer.on('disconnected', () => { try { peer.reconnect(); } catch(e){} });
-}
-
-function waitForBroadcast() {
-  show('waiting');
-  peer = makePeer(null);
-  peer.on('open', () => pollForBroadcaster(0));
-  peer.on('error', (err) => {
-    if (err.type !== 'peer-unavailable') showError('Bağlantı Hatası', 'Sunucuya ulaşılamadı.');
-  });
-  peer.on('disconnected', () => { try { peer.reconnect(); } catch(e){} });
-}
-
-function pollForBroadcaster(attempt) {
-  if (!peer || peer.destroyed) return;
-  const MAX = 60;
-  document.getElementById('waiting-msg').textContent =
-    'Yayın bekleniyor… (' + (MAX - attempt) + ' deneme kaldı)';
-
-  const conn = peer.connect(ROOM_ID, { reliable: true });
-  let resolved = false;
-
-  conn.on('open', () => {
-    if (resolved) return;
-    resolved = true;
-    conn.close();
-    // Yayıncı bulundu, şimdi gerçekten bağlan
-    broadcasterConn = peer.connect(ROOM_ID, { reliable: true });
-    broadcasterConn.on('open', () => callBroadcaster(0));
-    broadcasterConn.on('data', handleStatsFromBroadcaster);
+    broadcasterConn = peer.connect(broadcasterId, {reliable:true});
+    broadcasterConn.on('open', () => callBroadcaster(broadcasterId, 0));
+    broadcasterConn.on('data', handleViewerData);
     broadcasterConn.on('close', () => showError('Yayın Bitti', 'Yayıncı yayını kapattı.'));
   });
 
-  conn.on('error', () => {
-    if (resolved) return;
-    resolved = true;
-    if (attempt < MAX) {
-      retryTimer = setTimeout(() => pollForBroadcaster(attempt + 1), 5000);
-    } else {
-      showError('Yayın Bulunamadı', 'Uzun süre yayın gelmedi.');
-    }
+  peer.on('error', (err) => {
+    if (err.type === 'peer-unavailable') showError('Yayın Bulunamadı', 'Bu yayın artık aktif değil. Ana sayfaya dön.');
+    else showError('Bağlantı Hatası', err.type);
   });
-
-  setTimeout(() => {
-    if (!resolved) {
-      resolved = true;
-      try { conn.close(); } catch(e) {}
-      if (attempt < MAX) {
-        retryTimer = setTimeout(() => pollForBroadcaster(attempt + 1), 5000);
-      } else {
-        showError('Yayın Bulunamadı', 'Uzun süre yayın gelmedi.');
-      }
-    }
-  }, 3500);
+  peer.on('disconnected', () => { try{peer.reconnect();}catch(e){} });
 }
 
-function callBroadcaster(attempt) {
+function callBroadcaster(targetId, attempt) {
   const MAX = 20;
   if (!peer || peer.destroyed) return;
 
   let call;
-  try { call = peer.call(ROOM_ID, new MediaStream()); }
-  catch(e) { scheduleCallRetry(attempt, MAX); return; }
-  if (!call) { scheduleCallRetry(attempt, MAX); return; }
+  try { call = peer.call(targetId, new MediaStream()); }
+  catch(e) { scheduleRetry(targetId, attempt, MAX); return; }
+  if (!call) { scheduleRetry(targetId, attempt, MAX); return; }
 
-  let gotStream = false;
-
-  call.on('stream', (remoteStream) => {
-    if (gotStream) return;
-    gotStream = true;
+  let got = false;
+  call.on('stream', (stream) => {
+    if (got) return; got = true;
     if (retryTimer) clearTimeout(retryTimer);
-    document.getElementById('remote-video').srcObject = remoteStream;
-    show('viewer');
-    toast('Yayına bağlandın 🎬');
+    document.getElementById('remote-video').srcObject = stream;
+    show('viewer'); toast('Yayına bağlandın 🎬');
   });
-
-  call.on('close', () => {
-    if (gotStream) showError('Yayın Sona Erdi', 'Yayıncı yayını kapattı.');
-  });
-
-  call.on('error', () => { if (!gotStream) scheduleCallRetry(attempt, MAX); });
-
+  call.on('close', () => { if(got) showError('Yayın Sona Erdi','Yayıncı yayını kapattı.'); });
+  call.on('error', () => { if(!got) scheduleRetry(targetId, attempt, MAX); });
   retryTimer = setTimeout(() => {
-    if (!gotStream) {
-      try { call.close(); } catch(e) {}
-      scheduleCallRetry(attempt, MAX);
-    }
+    if (!got) { try{call.close();}catch(e){} scheduleRetry(targetId, attempt, MAX); }
   }, 6000);
 }
 
-function scheduleCallRetry(attempt, max) {
-  if (attempt >= max) { showError('Yayın Bulunamadı', 'Yayıncıya ulaşılamadı.'); return; }
-  document.getElementById('waiting-msg').textContent = 'Video bekleniyor… (' + (max-attempt) + ' kaldı)';
-  retryTimer = setTimeout(() => callBroadcaster(attempt + 1), 4000);
+function scheduleRetry(targetId, attempt, max) {
+  if (attempt >= max) { showError('Yayın Bulunamadı','Yayıncıya ulaşılamadı.'); return; }
+  document.getElementById('waiting-msg').textContent = 'Video bekleniyor… ('+(max-attempt)+' kaldı)';
+  retryTimer = setTimeout(() => callBroadcaster(targetId, attempt+1), 4000);
 }
 
-function handleStatsFromBroadcaster(data) {
+function handleViewerData(data) {
   if (!data || !data.type) return;
   if (data.type === 'stats') {
     document.getElementById('v-likes').textContent = data.likes;
     document.getElementById('v-unlikes').textContent = data.unlikes;
     document.getElementById('v-viewers').textContent = data.viewers;
   } else if (data.type === 'broadcast-killed') {
-    showError('Yayın Düşürüldü', '💔 İzleyiciler yayını oylamayla kaldırdı.');
+    showError('Yayın Düşürüldü','💔 İzleyiciler yayını oylamayla kaldırdı.');
   }
 }
 
-// ── REACTIONS ─────────────────────────────────────────────
 function sendReaction(type) {
   if (!broadcasterConn) return;
-
-  let msgType = type;
-  let prev = null;
-
-  if (myReaction === type) {
-    // Toggle off
-    msgType = 'remove-' + type;
-    myReaction = null;
-  } else {
-    prev = myReaction;
-    myReaction = type;
-  }
-
-  try {
-    broadcasterConn.send({ type: msgType, prev });
-  } catch(e) {}
-
-  // UI güncelle
-  document.getElementById('btn-like').className =
-    'react-btn' + (myReaction === 'like' ? ' active-like' : '');
-  document.getElementById('btn-unlike').className =
-    'react-btn' + (myReaction === 'unlike' ? ' active-unlike' : '');
+  let msgType = type, prev = null;
+  if (myReaction === type) { msgType = 'remove-' + type; myReaction = null; }
+  else { prev = myReaction; myReaction = type; }
+  try { broadcasterConn.send({type:msgType, prev}); } catch(e) {}
+  document.getElementById('btn-like').className = 'react-btn'+(myReaction==='like'?' active-like':'');
+  document.getElementById('btn-unlike').className = 'react-btn'+(myReaction==='unlike'?' active-unlike':'');
 }
 
 // ── INIT ──────────────────────────────────────────────────
 (function init() {
   if (typeof Peer === 'undefined') {
-    showError('Kütüphane Yüklenemedi', 'PeerJS yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
+    showError('Kütüphane Yüklenemedi','PeerJS yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
     return;
   }
   const params = new URLSearchParams(location.search);
-  if (params.get('join') === '1') {
-    enterRoom();
+  const v = params.get('v');
+  if (v) {
+    // URL'de peer ID var → izleyici
+    joinAsViewer(v);
   } else {
+    // URL'de ID yok → ana sayfa
     show('home');
   }
 })();
 </script>
 </body>
 </html>
-
