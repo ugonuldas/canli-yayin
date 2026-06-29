@@ -8,48 +8,196 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#08080e;color:#f0f0f8;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;text-align:center}
 h1{font-size:clamp(1.4rem,4vw,2rem);font-weight:800;background:linear-gradient(135deg,#c4b5fd,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-p{color:#6b7280;font-size:.9rem;max-width:260px;line-height:1.6}
-#qr-box{background:#fff;border-radius:20px;padding:16px;display:inline-flex}
-.url-badge{background:#111118;border:1px solid #1e1e2e;border-radius:8px;padding:.5rem 1rem;font-size:.75rem;color:#6b7280;font-family:monospace;word-break:break-all;max-width:320px}
+p{color:#6b7280;font-size:.9rem;max-width:280px;line-height:1.6}
+#qr-canvas{border-radius:16px;background:#fff;padding:12px}
+.url-badge{background:#111118;border:1px solid #1e1e2e;border-radius:8px;padding:.5rem 1rem;font-size:.7rem;color:#6b7280;font-family:monospace;word-break:break-all;max-width:320px}
 </style>
 </head>
 <body>
 <h1>📡 Canlı Yayın</h1>
 <p>Bu kodu telefonunla okut, odaya gir.</p>
-<canvas id="qr-box"></canvas>
-<div class="url-badge" id="url-label">yükleniyor…</div>
+<canvas id="qr-canvas"></canvas>
+<div class="url-badge" id="url-label">—</div>
 <p style="font-size:.75rem;color:#4b5563">Biri yayındaysa izlersin · Kimse yoksa sen başlatırsın</p>
 
 <script>
-// Minimal QR Code generator — CDN gerektirmez
-// Reed-Solomon + QR matrix, Mode: Byte, ECC: M
-(function(){
-/* ── tiny QR encoder (Mode=Byte, ECC=M, version auto 1-10) ── */
-var QR={};
-!function(t){var r=[],o=[],n=[];!function(){for(var t=1;t<256;t++){r[t]=t<128?t<<1:t<<1^285;o[0]=1;for(var e=0;e<255;e++)o[e+1]=o[e]^r[o[e]],n[o[e]]=e}}();function e(t){var r=0;for(var o=0;o<8&&0!=(t>>>o);o++)r++;return r}function i(t,r){return o[(n[t]+n[r])%255]}function a(t,r){return o[(n[t]+r)%255]}function s(t){if(null==t||0==t.length)throw new Error("empty");var r=[];for(var o=0;o<t.length;o++)r.push(255&t.charCodeAt(o));return r}function u(t,r){var e=[].concat(t);for(var o=0;o<r.length;o++)e.push(r[o]);return e}function c(t,r){var e=[0];for(var o=0;o<r;o++){var n=[];for(var i=0;i<e.length;i++)n.push(e[i]);n.push(0);for(var a=0;a<e.length;a++)n[a]=n[a]^r[a+(r.length-e.length)];e=n}return e}function f(t,r){var e=[];for(var o=0;o<r.length;o++)e.push(t^r[o]),t=t^e[o];return e}function l(t){return t.reduce(function(t,r){return t^r},0)}t.create=function(t,r){r=r||{};var o=r.errorCorrectionLevel||"M";var n=r.version;var c=s(t);if(!n){for(var f=1;f<=10;f++){var l=QR.getCapacity(f,o);if(l>=c.length){n=f;break}}if(!n)throw new Error("too long")}return QR.encode(c,n,o)};t.getCapacity=function(t,r){var o=[[41,25,17,10],[77,47,32,20],[127,77,53,32],[187,114,78,48],[255,154,106,65],[322,195,134,82],[370,224,154,95],[461,279,192,118],[552,335,230,141],[652,395,271,167]];var n={"L":0,"M":1,"Q":2,"H":3};return o[t-1][n[r]]};t.encode=function(t,r,o){var n=[[7,10,13,17],[10,16,22,28],[15,26,36,44],[20,36,52,64],[26,48,72,88],[36,64,96,112],[40,72,108,130],[48,88,132,156],[60,110,160,192],[72,130,192,224]];var s={"L":0,"M":1,"Q":2,"H":3};var u=n[r-1][s[o]];var c=[];c.push(64);var f=(t.length<<4)|(t.length>>4&0);c.push(t.length>>4);c.push((15&t.length)<<4|0);for(var l=0;l<t.length;l++){c.push(t[l])}c.push(0);var p=QR.getCapacity(r,o);var d=[];for(var g=0;g<p;g++){d.push(g%2==0?236:17)}for(var g=0;g<d.length&&c.length<p+3;g++)c.push(d[g]);return{data:c,version:r,errorCorrectionLevel:o}}}(QR);
+// ── Tam QR Code üretici (sıfırdan, CDN yok) ──────────────
+// Mode: Byte, ECC: M, Version: otomatik
+var QRGen=(function(){
+var GF={exp:[],log:[]};
+(function(){var x=1;for(var i=0;i<256;i++){GF.exp[i]=x;GF.log[x]=i;x<<=1;if(x&256)x^=285;}GF.exp[256]=GF.exp[0];})();
+function gfMul(a,b){if(a===0||b===0)return 0;return GF.exp[(GF.log[a]+GF.log[b])%255];}
+function gfPoly(e){var p=[1];for(var i=0;i<e;i++){var q=[1,GF.exp[i]];var r=[];for(var j=0;j<p.length+1;j++)r.push(0);for(var j=0;j<p.length;j++){r[j]^=gfMul(p[j],q[0]);r[j+1]^=gfMul(p[j],q[1]);}p=r;}return p;}
+function rsEncode(data,nsym){var gen=gfPoly(nsym);var msg=data.slice();for(var i=0;i<nsym;i++)msg.push(0);for(var i=0;i<data.length;i++){var c=msg[i];if(c!==0)for(var j=0;j<gen.length;j++)msg[i+j]^=gfMul(gen[j],c);}return msg.slice(data.length);}
 
-// フル QR は複雑すぎる — 代わりに qrserver.com API 使用
-function generateQR(url, canvas) {
-  var img = new Image();
-  var apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
-  img.onload = function() {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-  };
-  img.onerror = function() {
-    // Fallback: URL göster
-    canvas.style.display = 'none';
-    document.getElementById('url-label').style.fontSize = '1rem';
-    document.getElementById('url-label').style.color = '#c4b5fd';
-  };
-  img.src = apiUrl;
+// Kapasite tablosu [versiyon][ecc: L,M,Q,H] — byte modu
+var CAP=[[41,25,17,10],[77,47,32,20],[127,77,53,32],[187,114,78,48],[255,154,106,65],[322,195,134,82],[370,224,154,95],[461,279,192,118],[552,335,230,141],[652,395,271,167]];
+// EC codewords per block [version][M] = [ec_per_block, blocks]
+var EC_M=[[10,1],[16,1],[26,1],[36,2],[48,2],[64,4],[72,4],[88,4],[110,5],[130,5]];
+// Data codewords [version][M]
+var DC_M=[19,34,55,80,108,136,156,194,232,274];
+// Alignment pattern centers
+var ALIGN=[[],[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,28,46]];
+
+function encodeData(text,ver){
+  var bytes=[];for(var i=0;i<text.length;i++)bytes.push(text.charCodeAt(i)&255);
+  var bits=[];
+  function addBits(val,len){for(var i=len-1;i>=0;i--)bits.push((val>>i)&1);}
+  addBits(4,4);addBits(bytes.length,8);
+  for(var i=0;i<bytes.length;i++)addBits(bytes[i],8);
+  // Terminator
+  for(var i=0;i<4&&bits.length<DC_M[ver-1]*8;i++)bits.push(0);
+  while(bits.length%8)bits.push(0);
+  // Pad
+  var pad=[236,17];var pi=0;
+  while(bits.length<DC_M[ver-1]*8){var p=pad[pi%2];pi++;addBits(p,8);}
+  // To bytes
+  var data=[];for(var i=0;i<bits.length;i+=8){var b=0;for(var j=0;j<8;j++)b=(b<<1)|(bits[i+j]||0);data.push(b);}
+  return data;
 }
 
-var base = location.origin + '/canli-yayin/qr-live-stream.html?join=1';
-document.getElementById('url-label').textContent = base;
-generateQR(base, document.getElementById('qr-box'));
+function buildCodewords(data,ver){
+  var ecp=EC_M[ver-1][0],blocks=EC_M[ver-1][1];
+  var dc=DC_M[ver-1],shortLen=Math.floor(dc/blocks),extra=dc%blocks;
+  var dataBlocks=[],ecBlocks=[];
+  var idx=0;
+  for(var b=0;b<blocks;b++){
+    var len=shortLen+(b>=blocks-extra?1:0);
+    var block=data.slice(idx,idx+len);idx+=len;
+    dataBlocks.push(block);
+    ecBlocks.push(rsEncode(block,ecp));
+  }
+  var out=[];
+  var maxDC=Math.max.apply(null,dataBlocks.map(function(b){return b.length;}));
+  for(var i=0;i<maxDC;i++)for(var b=0;b<blocks;b++)if(i<dataBlocks[b].length)out.push(dataBlocks[b][i]);
+  for(var i=0;i<ecp;i++)for(var b=0;b<blocks;b++)out.push(ecBlocks[b][i]);
+  return out;
+}
+
+function makeMatrix(ver){
+  var sz=ver*4+17;
+  var m=[];for(var i=0;i<sz;i++){m.push([]);for(var j=0;j<sz;j++)m[i].push(null);}
+
+  function setBlock(r,c,pat){for(var i=0;i<pat.length;i++)for(var j=0;j<pat[i].length;j++)if(r+i>=0&&r+i<sz&&c+j>=0&&c+j<sz)m[r+i][c+j]=pat[i][j];}
+  var finder=[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]];
+  setBlock(0,0,finder);setBlock(0,sz-7,finder);setBlock(sz-7,0,finder);
+  // Separators & format areas (mark as reserved=2)
+  function mark(r,c){if(r>=0&&r<sz&&c>=0&&c<sz&&m[r][c]===null)m[r][c]=2;}
+  for(var i=0;i<8;i++){mark(7,i);mark(i,7);mark(7,sz-8+i);mark(i,sz-8);mark(sz-8+i,7);mark(sz-7,i);}
+  m[sz-8][8]=2;// dark module
+  for(var i=0;i<6;i++){mark(8,i);mark(i,8);}mark(8,7);mark(8,8);mark(7,8);
+  for(var i=0;i<8;i++){mark(8,sz-8+i);mark(sz-8+i,8);}
+  // Timing
+  for(var i=8;i<sz-8;i++){if(m[6][i]===null)m[6][i]=i%2===0?1:0;if(m[i][6]===null)m[i][6]=i%2===0?1:0;}
+  // Alignment
+  var ac=ALIGN[ver-1];
+  for(var a=0;a<ac.length;a++)for(var b=0;b<ac.length;b++){
+    var r=ac[a],c=ac[b];
+    if(m[r][c]!==null)continue;
+    var ap=[[1,1,1,1,1],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,0,1],[1,1,1,1,1]];
+    setBlock(r-2,c-2,ap);
+  }
+  return m;
+}
+
+function placeData(m,codewords){
+  var sz=m.length;var bits=[];
+  for(var i=0;i<codewords.length;i++)for(var b=7;b>=0;b--)bits.push((codewords[i]>>b)&1);
+  var bi=0;var up=true;
+  for(var col=sz-1;col>=0;col-=2){
+    if(col===6)col--;
+    for(var row=0;row<sz;row++){
+      var r=up?sz-1-row:row;
+      for(var c=col;c>=col-1;c--){
+        if(m[r][c]===null){
+          m[r][c]=bi<bits.length?bits[bi++]:0;
+        }
+      }
+    }
+    up=!up;
+  }
+}
+
+var MASKS=[
+  function(r,c){return(r+c)%2===0;},
+  function(r,c){return r%2===0;},
+  function(r,c){return c%3===0;},
+  function(r,c){return(r+c)%3===0;},
+  function(r,c){return(Math.floor(r/2)+Math.floor(c/3))%2===0;},
+  function(r,c){return(r*c)%2+(r*c)%3===0;},
+  function(r,c){return((r*c)%2+(r*c)%3)%2===0;},
+  function(r,c){return((r+c)%2+(r*c)%3)%2===0;}
+];
+
+// Format string for ECC=M, mask 0-7
+var FORMAT_M=[0b101010000010010,0b101000100100101,0b101111001111100,0b101101101001011,0b100010111111001,0b100000011001110,0b100111110010111,0b100101010100000];
+
+function applyMask(m,maskIdx){
+  var sz=m.length;var fn=MASKS[maskIdx];var mm=[];
+  for(var r=0;r<sz;r++){mm.push([]);for(var c=0;c<sz;c++){
+    var v=m[r][c];
+    if(v===0||v===1){mm[r].push(fn(r,c)?1-v:v);}else{mm[r].push(v);}
+  }}
+  // Write format
+  var fmt=FORMAT_M[maskIdx];
+  var fmtBits=[];for(var i=14;i>=0;i--)fmtBits.push((fmt>>i)&1);
+  var fi=0;
+  for(var i=0;i<=5;i++){mm[8][i]=fmtBits[fi];mm[i][8]=fmtBits[14-fi];fi++;}
+  mm[8][7]=fmtBits[fi];mm[7][8]=fmtBits[14-fi];fi++;
+  mm[8][8]=fmtBits[fi];fi++;
+  for(var i=9;i<=14;i++){mm[8][sz-15+i]=fmtBits[fi];mm[sz-15+i][8]=fmtBits[14-fi];fi++;}
+  mm[sz-8][8]=1;// dark module
+  return mm;
+}
+
+function score(m){
+  var sz=m.length,s=0;
+  // Rule 1
+  for(var r=0;r<sz;r++){var run=1;for(var c=1;c<sz;c++){if(m[r][c]===m[r][c-1])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
+  for(var c=0;c<sz;c++){var run=1;for(var r=1;r<sz;r++){if(m[r][c]===m[r-1][c])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
+  // Rule 2
+  for(var r=0;r<sz-1;r++)for(var c=0;c<sz-1;c++)if(m[r][c]===m[r][c+1]&&m[r][c]===m[r+1][c]&&m[r][c]===m[r+1][c+1])s+=3;
+  return s;
+}
+
+function generate(text){
+  var ver=1;for(;ver<=10;ver++){if(CAP[ver-1][1]>=text.length)break;}
+  if(ver>10)throw new Error("too long");
+  var data=encodeData(text,ver);
+  var cw=buildCodewords(data,ver);
+  var base=makeMatrix(ver);
+  placeData(base,cw);
+  var bestM=null,bestS=Infinity;
+  for(var mi=0;mi<8;mi++){
+    var mm=applyMask(JSON.parse(JSON.stringify(base)),mi);
+    var sc=score(mm);if(sc<bestS){bestS=sc;bestM=mm;}
+  }
+  return bestM;
+}
+
+function draw(matrix,canvas,scale){
+  scale=scale||8;
+  var sz=matrix.length;var quiet=4;
+  var total=(sz+quiet*2)*scale;
+  canvas.width=total;canvas.height=total;
+  var ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,total,total);
+  ctx.fillStyle='#000';
+  for(var r=0;r<sz;r++)for(var c=0;c<sz;c++)
+    if(matrix[r][c]===1)ctx.fillRect((c+quiet)*scale,(r+quiet)*scale,scale,scale);
+}
+
+// ── Ana kod ──────────────────────────────────────────────
+var url=location.origin+'/canli-yayin/qr-live-stream.html?join=1';
+document.getElementById('url-label').textContent=url;
+try{
+  var mat=generate(url);
+  draw(mat,document.getElementById('qr-canvas'),7);
+}catch(e){
+  document.getElementById('qr-canvas').style.display='none';
+  document.getElementById('url-label').style.color='#c4b5fd';
+  document.getElementById('url-label').style.fontSize='0.85rem';
+}
 </script>
 </body>
 </html>
