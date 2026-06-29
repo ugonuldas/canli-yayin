@@ -428,10 +428,15 @@ function joinAsViewer(broadcasterId) {
 
   peer = makePeer(null);
   peer.on('open', () => {
-    broadcasterConn = peer.connect(broadcasterId, {reliable:true});
-    broadcasterConn.on('open', () => callBroadcaster(broadcasterId, 0));
-    broadcasterConn.on('data', handleViewerData);
-    broadcasterConn.on('close', () => showError('Yayın Bitti','Yayıncı yayını kapattı.'));
+    // Önce video call başlat
+    callBroadcaster(broadcasterId, 0);
+
+    // Data channel ayrıca aç (like/unlike için)
+    try {
+      broadcasterConn = peer.connect(broadcasterId, {reliable:true});
+      broadcasterConn.on('data', handleViewerData);
+      broadcasterConn.on('close', () => {});
+    } catch(e) {}
   });
   peer.on('error', (err) => {
     if (err.type==='peer-unavailable') showError('Yayın Bulunamadı','Yayıncı artık çevrimiçi değil.');
