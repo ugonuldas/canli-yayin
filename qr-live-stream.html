@@ -458,7 +458,6 @@ function startStream() {
 }
 
 async function stopBroadcast() {
-  // JSONBin'i temizle
   try { await binSet({ broadcasterId: null }); } catch(e) {}
   if (localStream) localStream.getTracks().forEach(t=>t.stop());
   if (peer) { try{peer.destroy();}catch(e){} }
@@ -534,7 +533,15 @@ function sendReaction(type) {
   document.getElementById('btn-like').className='react-btn'+(myReaction==='like'?' active-like':'');
   document.getElementById('btn-unlike').className='react-btn'+(myReaction==='unlike'?' active-unlike':'');
 }
-
+// Sayfa kapanırken yayını temizle
+window.addEventListener('beforeunload', () => {
+  if (peer && isBroadcaster) {
+    navigator.sendBeacon(
+      BIN_URL,
+      JSON.stringify({record: {broadcasterId: null}})
+    );
+  }
+});
 // ── INIT ──────────────────────────────────────────────────
 (function init() {
   if (typeof Peer === 'undefined') {
