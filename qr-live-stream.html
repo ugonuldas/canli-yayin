@@ -180,7 +180,7 @@ function reset() {
   if (peer) { try { peer.destroy(); } catch(e){} }
   peer = null; localStream = null; dataChannels = {}; viewerCalls = {};
   broadcasterConn = null; viewerCount = 0; likes = 0; unlikes = 0; myReaction = null;
-  show('home');
+  location.href = 'index.html';
 }
 
 // ── JSONBIN ───────────────────────────────────────────────
@@ -434,7 +434,7 @@ async function stopBroadcast() {
   if (peer) { try{peer.destroy();}catch(e){} }
   peer=null; localStream=null; dataChannels={}; viewerCalls={};
   viewerCount=0; likes=0; unlikes=0;
-  show('home');
+  location.href = 'index.html';
 }
 
 // ── VIEWER ────────────────────────────────────────────────
