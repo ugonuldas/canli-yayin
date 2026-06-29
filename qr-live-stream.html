@@ -87,11 +87,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 </div>
 
 <!-- CAM PROMPT -->
-<div id="screen-cam-prompt" class="screen" style="gap:1.5rem;padding:2rem;text-align:center">
-  <div class="logo-ring">📷</div>
-  <h2 style="font-size:1.2rem;font-weight:700">Kamerayı Aç</h2>
-  <p style="color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6">Yayın hazır. Kamerana izin ver ve yayına başla.</p>
-  <button class="btn btn-primary" onclick="openCamera()">📷 Kamerayı Aç ve Yayına Başla</button>
+<div id="screen-cam-prompt" class="screen" style="gap:1.2rem;padding:2rem;text-align:center">
+  <div class="logo-ring" style="font-size:1.5rem">📡</div>
+  <h2 style="font-size:1.2rem;font-weight:700">Yayın Kaynağı Seç</h2>
+  <p style="color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6">Kameranı mı yoksa ekranını mı yayınlamak istiyorsun?</p>
+  <button class="btn btn-primary" onclick="openCamera()">📷 Kamera ile Yayına Başla</button>
+  <button class="btn btn-primary" onclick="openScreen()" style="background:linear-gradient(135deg,#0f766e,#0369a1)">🖥️ Ekran Paylaş</button>
   <button class="btn btn-danger" onclick="stopBroadcast()">İptal</button>
 </div>
 
@@ -418,23 +419,41 @@ function checkThreshold() {
 }
 
 async function openCamera() {
-  const btn=document.getElementById('btn-cam');
-  btn.disabled=true; btn.textContent='⏳ Kamera açılıyor…';
   try {
     localStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true});
   } catch(e1) {
     try{localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});}
-    catch(e2){btn.disabled=false;btn.textContent='📷 Kamerayı Aç';showError('Kamera İzni Reddedildi',e2.message);return;}
+    catch(e2){showError('Kamera İzni Reddedildi',e2.message);return;}
   }
-  document.getElementById('local-video').srcObject=localStream;
+  startStream();
+}
 
-  // Kamera açılınca bağlı izleyicileri geri ara
+async function openScreen() {
+  try {
+    localStream = await navigator.mediaDevices.getDisplayMedia({
+      video:{width:{ideal:1920},height:{ideal:1080}},
+      audio:true
+    });
+    // Ekran paylaşımı kullanıcı tarafından durdurulunca yayını bitir
+    localStream.getVideoTracks()[0].onended = () => {
+      toast('Ekran paylaşımı durduruldu…', 3000);
+      setTimeout(() => stopBroadcast(), 1500);
+    };
+    startStream();
+  } catch(e) {
+    showError('Ekran Paylaşımı Reddedildi', e.message);
+  }
+}
+
+function startStream() {
+  document.getElementById('local-video').srcObject=localStream;
+  // Bağlı izleyicileri ara
   Object.keys(dataChannels).forEach(vid => {
     const call = peer.call(vid, localStream);
     registerViewer(call);
   });
-
-  // Bundan sonra bağlananlar connection.on('open')'da aranacak
+  peer.removeAllListeners('call');
+  peer.on('call',(call)=>{call.answer(localStream);registerViewer(call);});
   show('broadcast'); toast('Yayın başladı! 🎥');
 }
 
@@ -535,5 +554,6 @@ function sendReaction(type) {
 </script>
 </body>
 </html>
+
 
 
