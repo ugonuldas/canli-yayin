@@ -79,6 +79,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
   <p id="conn-sub">Aktif yayın aranıyor</p>
 </div>
 
+<!-- CAM PROMPT -->
+<div id="screen-cam-prompt" class="screen" style="gap:1.5rem;padding:2rem;text-align:center">
+  <div class="logo-ring">📷</div>
+  <h2 style="font-size:1.2rem;font-weight:700">Kamerayı Aç</h2>
+  <p style="color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6">Yayın hazır. Kamerana izin ver ve yayına başla.</p>
+  <button class="btn btn-primary" onclick="openCamera()">📷 Kamerayı Aç ve Yayına Başla</button>
+  <button class="btn btn-danger" onclick="stopBroadcast()">İptal</button>
+</div>
+
 <!-- QR (yayıncı için) -->
 <div id="screen-qr" class="screen">
   <h2>QR Kodu Paylaş</h2>
@@ -321,8 +330,8 @@ async function startBroadcast() {
     try { await binSet({ broadcasterId: id }); }
     catch(e) { showError('Kayıt Hatası', 'Yayın ID kaydedilemedi. İnternet bağlantını kontrol et.'); return; }
 
-    // Direkt kamerayı aç
-    await openCamera();
+    // Kamera iznini kullanıcı etkileşimiyle almak için buton göster
+    show('cam-prompt');
   });
 
   // Yayıncı artık izleyiciyi kendisi arıyor (connection.on open'da)
