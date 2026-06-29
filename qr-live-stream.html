@@ -7,43 +7,30 @@
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#08080e;--surface:#111118;--border:#1e1e2e;
-  --accent:#6d28d9;--accent2:#1d4ed8;
-  --text:#f0f0f8;--muted:#6b7280;
-  --danger:#ef4444;--like:#f472b6;--unlike:#60a5fa;
-}
+:root{--bg:#08080e;--surface:#111118;--border:#1e1e2e;--accent:#6d28d9;--accent2:#1d4ed8;--text:#f0f0f8;--muted:#6b7280;--danger:#ef4444;--like:#f472b6;--unlike:#60a5fa;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
-
-/* HOME */
 #screen-home{gap:1.5rem;padding:2rem;text-align:center}
 .logo-ring{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto;box-shadow:0 0 32px #6d28d940}
 #screen-home h1{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;background:linear-gradient(135deg,#c4b5fd 0%,#93c5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 #screen-home p{color:var(--muted);font-size:.95rem;max-width:280px;line-height:1.6}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem 2rem;border-radius:12px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .18s,transform .15s;-webkit-tap-highlight-color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem 2rem;border-radius:12px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .18s,transform .15s;-webkit-tap-highlight-color:transparent;width:100%;max-width:280px}
 .btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:100%;max-width:280px;box-shadow:0 4px 24px #6d28d930}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 24px #6d28d930}
 .btn-primary:hover:not(:disabled){opacity:.88}
-.btn-danger{background:#1a0a0a;border:1px solid var(--danger);color:var(--danger);font-size:.875rem;padding:.6rem 1.4rem;border-radius:10px}
-
-/* CONNECTING */
+.btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.btn-danger{background:#1a0a0a;border:1px solid var(--danger);color:var(--danger);font-size:.875rem;padding:.6rem 1.4rem;border-radius:10px;width:auto}
 #screen-connecting{gap:1.2rem;text-align:center;padding:2rem}
 #screen-connecting h2{font-size:1.15rem;font-weight:700}
 #screen-connecting p{color:var(--muted);font-size:.875rem}
 .spinner{width:48px;height:48px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin .9s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* QR SCREEN */
 #screen-qr{gap:1.5rem;padding:2rem;text-align:center}
 #screen-qr h2{font-size:1.2rem;font-weight:700}
 #screen-qr p{color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6}
 #qr-canvas{border-radius:16px;background:#fff;padding:12px}
-
-/* BROADCAST */
 #screen-broadcast{padding:0;position:relative;background:#000;justify-content:flex-end}
 #local-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .broadcast-overlay{position:relative;z-index:10;width:100%;padding:1.5rem;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;flex-direction:column;align-items:center;gap:1rem}
@@ -57,8 +44,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 .unlike-bar-label{font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:4px;text-align:left}
 .unlike-bar-bg{background:rgba(255,255,255,.12);border-radius:4px;height:5px;overflow:hidden}
 .unlike-bar-fill{height:100%;border-radius:4px;background:var(--unlike);transition:width .4s}
-
-/* VIEWER */
 #screen-viewer{padding:0;position:relative;background:#000;justify-content:flex-end}
 #remote-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .viewer-overlay{position:relative;z-index:10;width:100%;padding:1.25rem 1.5rem;background:linear-gradient(transparent,rgba(0,0,0,.8));display:flex;flex-direction:column;align-items:center;gap:1rem}
@@ -68,47 +53,39 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 .react-btn.active-like{background:rgba(244,114,182,.25);border-color:var(--like);color:var(--like)}
 .react-btn.active-unlike{background:rgba(96,165,250,.25);border-color:var(--unlike);color:var(--unlike)}
 .react-count{font-size:.85rem;font-weight:600}
-
-/* WAITING */
-#screen-waiting{gap:1.5rem;text-align:center;padding:2rem}
-#screen-waiting h2{font-size:1.15rem;font-weight:700}
-#screen-waiting p{color:var(--muted);font-size:.875rem;max-width:240px;line-height:1.6}
-
-/* ERROR */
 #screen-error{gap:1.2rem;text-align:center;padding:2rem}
 .error-icon{font-size:3rem}
 #screen-error h2{font-size:1.2rem;font-weight:700}
 #screen-error p{color:var(--muted);font-size:.875rem;max-width:260px;line-height:1.6}
-
-/* TOAST */
 #toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(120%);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.65rem 1.2rem;border-radius:10px;font-size:.875rem;white-space:nowrap;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
 #toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- HOME -->
+<!-- HOME: yayın yok -->
 <div id="screen-home" class="screen active">
   <div class="logo-ring">📡</div>
   <h1>QR Canlı<br>Yayın</h1>
-  <p>Yayın başlat, QR kodu paylaş. İzleyiciler kameranı anında görür.</p>
+  <p>Şu an aktif yayın yok.</p>
   <button class="btn btn-primary" onclick="startBroadcast()">▶ Yayına Başla</button>
+  <button class="btn btn-ghost" onclick="checkAndWatch()" style="margin-top:.5rem">🔄 Tekrar Kontrol Et</button>
 </div>
 
 <!-- CONNECTING -->
 <div id="screen-connecting" class="screen">
   <div class="spinner"></div>
-  <h2 id="conn-msg">Bağlanılıyor…</h2>
-  <p id="conn-sub"></p>
+  <h2 id="conn-msg">Kontrol ediliyor…</h2>
+  <p id="conn-sub">Aktif yayın aranıyor</p>
 </div>
 
-<!-- QR (yayıncı QR'ı gösterir, izleyici bekler) -->
+<!-- QR (yayıncı için) -->
 <div id="screen-qr" class="screen">
   <h2>QR Kodu Paylaş</h2>
   <p>İzleyiciler bu kodu okutunca canlı görüntüne bağlanır</p>
   <canvas id="qr-canvas"></canvas>
   <button class="btn btn-primary" id="btn-cam" onclick="openCamera()">📷 Kamerayı Aç</button>
-  <button class="btn btn-danger" onclick="reset()" style="margin-top:.25rem">İptal</button>
+  <button class="btn btn-danger" onclick="stopBroadcast()" style="margin-top:.25rem">İptal</button>
 </div>
 
 <!-- BROADCAST -->
@@ -146,20 +123,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
   </div>
 </div>
 
-<!-- WAITING -->
-<div id="screen-waiting" class="screen">
-  <div class="spinner"></div>
-  <h2>Yayın Bekleniyor</h2>
-  <p id="waiting-msg">Yayıncı bağlanınca otomatik başlayacak…</p>
-  <button class="btn btn-danger" onclick="reset()" style="margin-top:1rem">Geri Dön</button>
-</div>
-
 <!-- ERROR -->
 <div id="screen-error" class="screen">
   <div class="error-icon">⚠️</div>
   <h2 id="err-title">Bir sorun oluştu</h2>
   <p id="err-msg">Lütfen tekrar deneyin.</p>
-  <button class="btn btn-primary" onclick="reset()">Yeniden Dene</button>
+  <button class="btn btn-primary" onclick="reset()">Ana Sayfaya Dön</button>
 </div>
 
 <div id="toast"></div>
@@ -167,10 +136,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 <script>
 'use strict';
 
-// ── Unlike eşiği ─────────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────
+const BIN_ID  = '6a420559da38895dfe0e337a';
+const BIN_KEY = '$2a$10$RsfQ/mvF/E6DCqH8pVzk8uRlG4HGVvn1.PS/PMa1jofyEnCqmmA1u';
+const BIN_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 const UNLIKE_THRESHOLD = (n) => Math.max(3, Math.ceil(n * 2 / 3));
 
-// ── State ─────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────
 let peer = null, localStream = null;
 let dataChannels = {}, viewerCalls = {};
 let broadcasterConn = null;
@@ -192,7 +164,6 @@ function showError(title, msg) {
   document.getElementById('err-msg').textContent = msg;
   show('error');
 }
-
 function reset() {
   if (retryTimer) clearTimeout(retryTimer);
   if (localStream) localStream.getTracks().forEach(t => t.stop());
@@ -202,70 +173,73 @@ function reset() {
   show('home');
 }
 
-// ── QR Üretici (sıfırdan, CDN yok) ───────────────────────
-var GFexp=[],GFlog=[];
-(function(){var x=1;for(var i=0;i<256;i++){GFexp[i]=x;GFlog[x]=i;x<<=1;if(x&256)x^=285;}GFexp[256]=GFexp[0];})();
-function gfMul(a,b){if(!a||!b)return 0;return GFexp[(GFlog[a]+GFlog[b])%255];}
-function gfPoly(e){var p=[1];for(var i=0;i<e;i++){var r=new Array(p.length+1).fill(0);for(var j=0;j<p.length;j++){r[j]^=gfMul(p[j],1);r[j+1]^=gfMul(p[j],GFexp[i]);}p=r;}return p;}
-function rsEncode(data,n){var g=gfPoly(n),msg=data.concat(new Array(n).fill(0));for(var i=0;i<data.length;i++){var c=msg[i];if(c)for(var j=0;j<g.length;j++)msg[i+j]^=gfMul(g[j],c);}return msg.slice(data.length);}
+// ── JSONBIN ───────────────────────────────────────────────
+async function binGet() {
+  const r = await fetch(BIN_URL + '/latest', {
+    headers: { 'X-Master-Key': BIN_KEY }
+  });
+  const d = await r.json();
+  return d.record;
+}
+async function binSet(data) {
+  await fetch(BIN_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY },
+    body: JSON.stringify(data)
+  });
+}
 
-var CAP_M=[25,47,77,114,154,195,224,279,335,395];
-var DC_M=[19,34,55,80,108,136,156,194,232,274];
-var EC_M=[[10,1],[16,1],[26,1],[36,2],[48,2],[64,4],[72,4],[88,4],[110,5],[130,5]];
-var ALIGN=[[],[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,28,46]];
-var FMT_M=[21522,20773,24188,23371,17913,16590,20375,19104];
-
-function makeQR(text) {
-  var bytes=[]; for(var i=0;i<text.length;i++) bytes.push(text.charCodeAt(i)&255);
-  var ver=1; for(;ver<=10;ver++) if(CAP_M[ver-1]>=bytes.length) break;
-  if(ver>10) throw 'too long';
-
-  // Encode
+// ── QR ────────────────────────────────────────────────────
+var GFe=[],GFl=[];
+(function(){var x=1;for(var i=0;i<256;i++){GFe[i]=x;GFl[x]=i;x<<=1;if(x&256)x^=285;}GFe[256]=GFe[0];})();
+function gfM(a,b){if(!a||!b)return 0;return GFe[(GFl[a]+GFl[b])%255];}
+function gfP(e){var p=[1];for(var i=0;i<e;i++){var r=new Array(p.length+1).fill(0);for(var j=0;j<p.length;j++){r[j]^=gfM(p[j],1);r[j+1]^=gfM(p[j],GFe[i]);}p=r;}return p;}
+function rsE(data,n){var g=gfP(n),msg=data.concat(new Array(n).fill(0));for(var i=0;i<data.length;i++){var c=msg[i];if(c)for(var j=0;j<g.length;j++)msg[i+j]^=gfM(g[j],c);}return msg.slice(data.length);}
+var CAP=[25,47,77,114,154,195,224,279,335,395];
+var DC=[19,34,55,80,108,136,156,194,232,274];
+var ECM=[[10,1],[16,1],[26,1],[36,2],[48,2],[64,4],[72,4],[88,4],[110,5],[130,5]];
+var ALN=[[],[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,28,46]];
+var FMT=[21522,20773,24188,23371,17913,16590,20375,19104];
+function makeQR(text){
+  var bytes=[];for(var i=0;i<text.length;i++)bytes.push(text.charCodeAt(i)&255);
+  var ver=1;for(;ver<=10;ver++)if(CAP[ver-1]>=bytes.length)break;
+  if(ver>10)throw'too long';
   var bits=[];
-  function addBits(v,l){for(var i=l-1;i>=0;i--)bits.push((v>>i)&1);}
-  addBits(4,4); addBits(bytes.length,8);
-  for(var i=0;i<bytes.length;i++) addBits(bytes[i],8);
-  for(var i=0;i<4&&bits.length<DC_M[ver-1]*8;i++) bits.push(0);
-  while(bits.length%8) bits.push(0);
+  function ab(v,l){for(var i=l-1;i>=0;i--)bits.push((v>>i)&1);}
+  ab(4,4);ab(bytes.length,8);
+  for(var i=0;i<bytes.length;i++)ab(bytes[i],8);
+  for(var i=0;i<4&&bits.length<DC[ver-1]*8;i++)bits.push(0);
+  while(bits.length%8)bits.push(0);
   var pad=[236,17],pi=0;
-  while(bits.length<DC_M[ver-1]*8){addBits(pad[pi++%2],8);}
-  var data=[]; for(var i=0;i<bits.length;i+=8){var b=0;for(var j=0;j<8;j++)b=(b<<1)|(bits[i+j]||0);data.push(b);}
-
-  // RS blocks
-  var ecp=EC_M[ver-1][0],blks=EC_M[ver-1][1];
-  var sl=Math.floor(DC_M[ver-1]/blks),ex=DC_M[ver-1]%blks;
+  while(bits.length<DC[ver-1]*8)ab(pad[pi++%2],8);
+  var data=[];for(var i=0;i<bits.length;i+=8){var b=0;for(var j=0;j<8;j++)b=(b<<1)|(bits[i+j]||0);data.push(b);}
+  var ecp=ECM[ver-1][0],blks=ECM[ver-1][1];
+  var sl=Math.floor(DC[ver-1]/blks),ex=DC[ver-1]%blks;
   var db=[],eb=[],idx=0;
-  for(var b=0;b<blks;b++){var l=sl+(b>=blks-ex?1:0);db.push(data.slice(idx,idx+l));idx+=l;eb.push(rsEncode(db[b],ecp));}
-  var cw=[];
-  var mx=Math.max.apply(null,db.map(function(x){return x.length;}));
-  for(var i=0;i<mx;i++) for(var b=0;b<blks;b++) if(i<db[b].length) cw.push(db[b][i]);
-  for(var i=0;i<ecp;i++) for(var b=0;b<blks;b++) cw.push(eb[b][i]);
-
-  // Matrix
+  for(var b=0;b<blks;b++){var l=sl+(b>=blks-ex?1:0);db.push(data.slice(idx,idx+l));idx+=l;eb.push(rsE(db[b],ecp));}
+  var cw=[];var mx=Math.max.apply(null,db.map(function(x){return x.length;}));
+  for(var i=0;i<mx;i++)for(var b=0;b<blks;b++)if(i<db[b].length)cw.push(db[b][i]);
+  for(var i=0;i<ecp;i++)for(var b=0;b<blks;b++)cw.push(eb[b][i]);
   var sz=ver*4+17;
   var m=Array.from({length:sz},function(){return new Array(sz).fill(null);});
-  function setBlock(r,c,pat){for(var i=0;i<pat.length;i++)for(var j=0;j<pat[i].length;j++)if(r+i>=0&&r+i<sz&&c+j>=0&&c+j<sz)m[r+i][c+j]=pat[i][j];}
-  var finder=[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]];
-  setBlock(0,0,finder); setBlock(0,sz-7,finder); setBlock(sz-7,0,finder);
-  function rsv(r,c){if(r>=0&&r<sz&&c>=0&&c<sz&&m[r][c]===null)m[r][c]=2;}
-  for(var i=0;i<8;i++){rsv(7,i);rsv(i,7);rsv(7,sz-8+i);rsv(i,sz-8);rsv(sz-8+i,7);rsv(sz-7,i);}
-  for(var i=0;i<6;i++){rsv(8,i);rsv(i,8);}rsv(8,7);rsv(8,8);rsv(7,8);
-  for(var i=0;i<8;i++){rsv(8,sz-8+i);rsv(sz-8+i,8);}
+  function sB(r,c,pat){for(var i=0;i<pat.length;i++)for(var j=0;j<pat[i].length;j++)if(r+i>=0&&r+i<sz&&c+j>=0&&c+j<sz)m[r+i][c+j]=pat[i][j];}
+  var fin=[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,0,0,0,0,1],[1,1,1,1,1,1,1]];
+  sB(0,0,fin);sB(0,sz-7,fin);sB(sz-7,0,fin);
+  function rv(r,c){if(r>=0&&r<sz&&c>=0&&c<sz&&m[r][c]===null)m[r][c]=2;}
+  for(var i=0;i<8;i++){rv(7,i);rv(i,7);rv(7,sz-8+i);rv(i,sz-8);rv(sz-8+i,7);rv(sz-7,i);}
+  for(var i=0;i<6;i++){rv(8,i);rv(i,8);}rv(8,7);rv(8,8);rv(7,8);
+  for(var i=0;i<8;i++){rv(8,sz-8+i);rv(sz-8+i,8);}
   for(var i=8;i<sz-8;i++){if(m[6][i]===null)m[6][i]=i%2?0:1;if(m[i][6]===null)m[i][6]=i%2?0:1;}
-  var ac=ALIGN[ver-1];
+  var ac=ALN[ver-1];
   var ap=[[1,1,1,1,1],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,0,1],[1,1,1,1,1]];
-  for(var a=0;a<ac.length;a++)for(var b2=0;b2<ac.length;b2++){if(m[ac[a]][ac[b2]]!==null)continue;setBlock(ac[a]-2,ac[b2]-2,ap);}
-
-  // Place data
-  var cbits=[]; for(var i=0;i<cw.length;i++) for(var b=7;b>=0;b--) cbits.push((cw[i]>>b)&1);
+  for(var a=0;a<ac.length;a++)for(var b2=0;b2<ac.length;b2++){if(m[ac[a]][ac[b2]]!==null)continue;sB(ac[a]-2,ac[b2]-2,ap);}
+  var cb=[];for(var i=0;i<cw.length;i++)for(var b=7;b>=0;b--)cb.push((cw[i]>>b)&1);
   var bi=0,up=true;
   for(var col=sz-1;col>=0;col-=2){
     if(col===6)col--;
-    for(var row=0;row<sz;row++){var r=up?sz-1-row:row;for(var c=col;c>=col-1;c--){if(m[r][c]===null)m[r][c]=bi<cbits.length?cbits[bi++]:0;}}
+    for(var row=0;row<sz;row++){var r=up?sz-1-row:row;for(var c=col;c>=col-1;c--){if(m[r][c]===null)m[r][c]=bi<cb.length?cb[bi++]:0;}}
     up=!up;
   }
-
-  // Best mask
   var masks=[
     function(r,c){return(r+c)%2===0;},function(r,c){return r%2===0;},
     function(r,c){return c%3===0;},function(r,c){return(r+c)%3===0;},
@@ -274,76 +248,84 @@ function makeQR(text) {
     function(r,c){return((r*c)%2+(r*c)%3)%2===0;},
     function(r,c){return((r+c)%2+(r*c)%3)%2===0;}
   ];
-  function applyMask(base,mi){
+  function aM(base,mi){
     var mm=base.map(function(row){return row.slice();});
     var fn=masks[mi];
     for(var r=0;r<sz;r++)for(var c=0;c<sz;c++)if(mm[r][c]===0||mm[r][c]===1)mm[r][c]=fn(r,c)?1-mm[r][c]:mm[r][c];
-    var fmt=FMT_M[mi],fi=0,fb=[];for(var i=14;i>=0;i--)fb.push((fmt>>i)&1);
+    var fmt=FMT[mi],fi=0,fb=[];for(var i=14;i>=0;i--)fb.push((fmt>>i)&1);
     for(var i=0;i<=5;i++){mm[8][i]=fb[fi];mm[i][8]=fb[14-fi];fi++;}
     mm[8][7]=fb[fi];mm[7][8]=fb[14-fi];fi++;mm[8][8]=fb[fi];fi++;
     for(var i=9;i<=14;i++){mm[8][sz-15+i]=fb[fi];mm[sz-15+i][8]=fb[14-fi];fi++;}
-    mm[sz-8][8]=1; return mm;
+    mm[sz-8][8]=1;return mm;
   }
-  function score(mm){
+  function sc(mm){
     var s=0;
     for(var r=0;r<sz;r++){var run=1;for(var c=1;c<sz;c++){if(mm[r][c]===mm[r][c-1])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
-    for(var c=0;c<sz;c++){var run=1;for(var r=0;r<sz;r++){if(r>0){if(mm[r][c]===mm[r-1][c])run++;else{if(run>=5)s+=run-2;run=1;}}}}
+    for(var c=0;c<sz;c++){var run=1;for(var r=1;r<sz;r++){if(mm[r][c]===mm[r-1][c])run++;else{if(run>=5)s+=run-2;run=1;}}if(run>=5)s+=run-2;}
     for(var r=0;r<sz-1;r++)for(var c=0;c<sz-1;c++)if(mm[r][c]===mm[r][c+1]&&mm[r][c]===mm[r+1][c]&&mm[r][c]===mm[r+1][c+1])s+=3;
     return s;
   }
   var bestM=null,bestS=Infinity;
-  for(var mi=0;mi<8;mi++){var mm=applyMask(m,mi);var sc=score(mm);if(sc<bestS){bestS=sc;bestM=mm;}}
+  for(var mi=0;mi<8;mi++){var mm=aM(m,mi);var s=sc(mm);if(s<bestS){bestS=s;bestM=mm;}}
   return bestM;
 }
-
-function drawQR(matrix, canvas, scale) {
-  scale = scale || 7;
-  var sz = matrix.length, q = 3;
-  var total = (sz + q*2) * scale;
-  canvas.width = total; canvas.height = total;
-  var ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,total,total);
-  ctx.fillStyle = '#000';
-  for(var r=0;r<sz;r++) for(var c=0;c<sz;c++)
-    if(matrix[r][c]===1) ctx.fillRect((c+q)*scale,(r+q)*scale,scale,scale);
+function drawQR(mat,canvas,scale){
+  scale=scale||7;var sz=mat.length,q=3,total=(sz+q*2)*scale;
+  canvas.width=total;canvas.height=total;
+  var ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,total,total);
+  ctx.fillStyle='#000';
+  for(var r=0;r<sz;r++)for(var c=0;c<sz;c++)if(mat[r][c]===1)ctx.fillRect((c+q)*scale,(r+q)*scale,scale,scale);
 }
 
-// ── PeerJS ────────────────────────────────────────────────
+// ── PEER ──────────────────────────────────────────────────
 function makePeer(id) {
-  var opts = {
-    debug: 0,
-    config: { iceServers: [
-      {urls:'stun:stun.l.google.com:19302'},
-      {urls:'stun:stun1.l.google.com:19302'}
-    ]}
-  };
+  var opts = {debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}};
   if (id) opts.id = id;
   return new Peer(opts);
 }
 
-// ── BROADCASTER ───────────────────────────────────────────
-function startBroadcast() {
-  if (typeof Peer === 'undefined') {
-    showError('Kütüphane Yüklenemedi', 'Sayfayı yenileyip tekrar dene.');
-    return;
-  }
+// ── CHECK & WATCH (QR okutunca buraya gelir) ─────────────
+async function checkAndWatch() {
   show('connecting');
-  document.getElementById('conn-msg').textContent = 'Sunucuya bağlanılıyor…';
+  document.getElementById('conn-msg').textContent = 'Yayın aranıyor…';
+  document.getElementById('conn-sub').textContent = '';
+  try {
+    const rec = await binGet();
+    if (rec && rec.broadcasterId) {
+      // Yayın var → izleyici ol
+      joinAsViewer(rec.broadcasterId);
+    } else {
+      // Yayın yok → ana sayfa
+      show('home');
+      toast('Şu an aktif yayın yok.');
+    }
+  } catch(e) {
+    show('home');
+    toast('Bağlantı hatası, tekrar dene.');
+  }
+}
 
-  peer = makePeer(null); // rastgele ID al
+// ── BROADCASTER ───────────────────────────────────────────
+async function startBroadcast() {
+  if (typeof Peer === 'undefined') { showError('Kütüphane Yüklenemedi','Sayfayı yenileyip tekrar dene.'); return; }
+  show('connecting');
+  document.getElementById('conn-msg').textContent = 'Bağlanılıyor…';
+  document.getElementById('conn-sub').textContent = '';
 
-  peer.on('open', (id) => {
-    // QR URL: bu sayfa + ?v=ID
+  peer = makePeer(null);
+
+  peer.on('open', async (id) => {
+    // ID'yi JSONBin'e yaz
+    try { await binSet({ broadcasterId: id }); }
+    catch(e) { showError('Kayıt Hatası', 'Yayın ID kaydedilemedi. İnternet bağlantını kontrol et.'); return; }
+
+    // QR üret — bu sayfanın URL'si + ?v=ID
     const base = location.href.split('?')[0];
     const url = base + '?v=' + id;
-
-    // QR çiz
     try {
-      const mat = makeQR(url);
-      drawQR(mat, document.getElementById('qr-canvas'), 6);
-    } catch(e) {
-      console.error('QR hata:', e);
-    }
+      drawQR(makeQR(url), document.getElementById('qr-canvas'), 6);
+    } catch(e) { console.error('QR hata:', e); }
 
     show('qr');
   });
@@ -357,7 +339,7 @@ function startBroadcast() {
   peer.on('connection', (conn) => {
     const vid = conn.peer;
     dataChannels[vid] = conn;
-    conn.on('data', (data) => handleReaction(vid, data));
+    conn.on('data', (d) => handleReaction(vid, d));
     conn.on('close', () => delete dataChannels[vid]);
   });
 
@@ -370,73 +352,66 @@ function startBroadcast() {
 
 function registerViewer(call) {
   const vid = call.peer;
-  viewerCalls[vid] = call;
-  viewerCount++;
-  updateStats();
-  toast('Yeni izleyici bağlandı 👁');
+  viewerCalls[vid] = call; viewerCount++;
+  updateStats(); toast('Yeni izleyici bağlandı 👁');
   call.on('close', () => { delete viewerCalls[vid]; viewerCount=Math.max(0,viewerCount-1); updateStats(); });
   call.on('error', () => { delete viewerCalls[vid]; viewerCount=Math.max(0,viewerCount-1); updateStats(); });
 }
 
 function handleReaction(vid, data) {
-  if (!data || !data.type) return;
-  if (data.type === 'like') { if(data.prev==='unlike') unlikes=Math.max(0,unlikes-1); likes++; }
-  else if (data.type === 'unlike') { if(data.prev==='like') likes=Math.max(0,likes-1); unlikes++; }
-  else if (data.type === 'remove-like') likes=Math.max(0,likes-1);
-  else if (data.type === 'remove-unlike') unlikes=Math.max(0,unlikes-1);
+  if (!data||!data.type) return;
+  if (data.type==='like'){if(data.prev==='unlike')unlikes=Math.max(0,unlikes-1);likes++;}
+  else if(data.type==='unlike'){if(data.prev==='like')likes=Math.max(0,likes-1);unlikes++;}
+  else if(data.type==='remove-like')likes=Math.max(0,likes-1);
+  else if(data.type==='remove-unlike')unlikes=Math.max(0,unlikes-1);
   updateStats(); broadcastStats(); checkThreshold();
 }
 
 function broadcastStats() {
-  const msg = {type:'stats', likes, unlikes, viewers:viewerCount};
-  Object.values(dataChannels).forEach(c => { try{c.send(msg);}catch(e){} });
+  const msg={type:'stats',likes,unlikes,viewers:viewerCount};
+  Object.values(dataChannels).forEach(c=>{try{c.send(msg);}catch(e){}});
 }
 
 function updateStats() {
-  document.getElementById('b-viewers').textContent = viewerCount;
-  document.getElementById('b-likes').textContent = likes;
-  document.getElementById('b-unlikes').textContent = unlikes;
-  const thr = UNLIKE_THRESHOLD(viewerCount);
-  const wrap = document.getElementById('unlike-bar-wrap');
-  if (unlikes > 0 && viewerCount > 0) {
-    wrap.style.display = 'block';
-    document.getElementById('unlike-bar-fill').style.width = Math.min(100,Math.round(unlikes/thr*100))+'%';
-    document.getElementById('unlike-bar-label').textContent = '💔 '+unlikes+' / '+thr+' (yayın düşme eşiği)';
-  } else { wrap.style.display = 'none'; }
+  document.getElementById('b-viewers').textContent=viewerCount;
+  document.getElementById('b-likes').textContent=likes;
+  document.getElementById('b-unlikes').textContent=unlikes;
+  const thr=UNLIKE_THRESHOLD(viewerCount);
+  const wrap=document.getElementById('unlike-bar-wrap');
+  if(unlikes>0&&viewerCount>0){
+    wrap.style.display='block';
+    document.getElementById('unlike-bar-fill').style.width=Math.min(100,Math.round(unlikes/thr*100))+'%';
+    document.getElementById('unlike-bar-label').textContent='💔 '+unlikes+' / '+thr+' (yayın düşme eşiği)';
+  }else{wrap.style.display='none';}
 }
 
 function checkThreshold() {
-  const thr = UNLIKE_THRESHOLD(viewerCount);
-  if (viewerCount > 0 && unlikes >= thr) {
-    Object.values(dataChannels).forEach(c => { try{c.send({type:'broadcast-killed'});}catch(e){} });
+  const thr=UNLIKE_THRESHOLD(viewerCount);
+  if(viewerCount>0&&unlikes>=thr){
+    Object.values(dataChannels).forEach(c=>{try{c.send({type:'broadcast-killed'});}catch(e){}});
     stopBroadcast();
-    toast('💔 İzleyiciler yayını düşürdü!', 4000);
+    toast('💔 İzleyiciler yayını düşürdü!',4000);
   }
 }
 
 async function openCamera() {
-  const btn = document.getElementById('btn-cam');
-  btn.disabled = true; btn.textContent = '⏳ Kamera açılıyor…';
+  const btn=document.getElementById('btn-cam');
+  btn.disabled=true; btn.textContent='⏳ Kamera açılıyor…';
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true
-    });
+    localStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:true});
   } catch(e1) {
-    try { localStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true}); }
-    catch(e2) {
-      btn.disabled=false; btn.textContent='📷 Kamerayı Aç';
-      showError('Kamera İzni Reddedildi', e2.message); return;
-    }
+    try{localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});}
+    catch(e2){btn.disabled=false;btn.textContent='📷 Kamerayı Aç';showError('Kamera İzni Reddedildi',e2.message);return;}
   }
-  document.getElementById('local-video').srcObject = localStream;
-
-  // Bekleyen izleyicilere cevap ver
-  peer.on('call', (call) => { call.answer(localStream); registerViewer(call); });
-
+  document.getElementById('local-video').srcObject=localStream;
+  peer.removeAllListeners('call');
+  peer.on('call',(call)=>{call.answer(localStream);registerViewer(call);});
   show('broadcast'); toast('Yayın başladı! 🎥');
 }
 
-function stopBroadcast() {
+async function stopBroadcast() {
+  // JSONBin'i temizle
+  try { await binSet({ broadcasterId: null }); } catch(e) {}
   if (localStream) localStream.getTracks().forEach(t=>t.stop());
   if (peer) { try{peer.destroy();}catch(e){} }
   peer=null; localStream=null; dataChannels={}; viewerCalls={};
@@ -446,87 +421,82 @@ function stopBroadcast() {
 
 // ── VIEWER ────────────────────────────────────────────────
 function joinAsViewer(broadcasterId) {
-  show('waiting');
-  peer = makePeer(null);
+  show('connecting');
+  document.getElementById('conn-msg').textContent = 'Yayına bağlanılıyor…';
+  document.getElementById('conn-sub').textContent = '';
 
+  peer = makePeer(null);
   peer.on('open', () => {
     broadcasterConn = peer.connect(broadcasterId, {reliable:true});
     broadcasterConn.on('open', () => callBroadcaster(broadcasterId, 0));
     broadcasterConn.on('data', handleViewerData);
-    broadcasterConn.on('close', () => showError('Yayın Bitti', 'Yayıncı yayını kapattı.'));
+    broadcasterConn.on('close', () => showError('Yayın Bitti','Yayıncı yayını kapattı.'));
   });
-
   peer.on('error', (err) => {
-    if (err.type === 'peer-unavailable') showError('Yayın Bulunamadı', 'Bu yayın artık aktif değil. Ana sayfaya dön.');
+    if (err.type==='peer-unavailable') showError('Yayın Bulunamadı','Yayıncı artık çevrimiçi değil.');
     else showError('Bağlantı Hatası', err.type);
   });
   peer.on('disconnected', () => { try{peer.reconnect();}catch(e){} });
 }
 
 function callBroadcaster(targetId, attempt) {
-  const MAX = 20;
-  if (!peer || peer.destroyed) return;
-
+  const MAX=20;
+  if (!peer||peer.destroyed) return;
   let call;
-  try { call = peer.call(targetId, new MediaStream()); }
-  catch(e) { scheduleRetry(targetId, attempt, MAX); return; }
-  if (!call) { scheduleRetry(targetId, attempt, MAX); return; }
-
-  let got = false;
-  call.on('stream', (stream) => {
-    if (got) return; got = true;
-    if (retryTimer) clearTimeout(retryTimer);
-    document.getElementById('remote-video').srcObject = stream;
-    show('viewer'); toast('Yayına bağlandın 🎬');
+  try{call=peer.call(targetId,new MediaStream());}catch(e){scheduleRetry(targetId,attempt,MAX);return;}
+  if(!call){scheduleRetry(targetId,attempt,MAX);return;}
+  let got=false;
+  call.on('stream',(stream)=>{
+    if(got)return;got=true;
+    if(retryTimer)clearTimeout(retryTimer);
+    document.getElementById('remote-video').srcObject=stream;
+    show('viewer');toast('Yayına bağlandın 🎬');
   });
-  call.on('close', () => { if(got) showError('Yayın Sona Erdi','Yayıncı yayını kapattı.'); });
-  call.on('error', () => { if(!got) scheduleRetry(targetId, attempt, MAX); });
-  retryTimer = setTimeout(() => {
-    if (!got) { try{call.close();}catch(e){} scheduleRetry(targetId, attempt, MAX); }
-  }, 6000);
+  call.on('close',()=>{if(got)showError('Yayın Sona Erdi','Yayıncı yayını kapattı.');});
+  call.on('error',()=>{if(!got)scheduleRetry(targetId,attempt,MAX);});
+  retryTimer=setTimeout(()=>{if(!got){try{call.close();}catch(e){}scheduleRetry(targetId,attempt,MAX);}},6000);
 }
 
-function scheduleRetry(targetId, attempt, max) {
-  if (attempt >= max) { showError('Yayın Bulunamadı','Yayıncıya ulaşılamadı.'); return; }
-  document.getElementById('waiting-msg').textContent = 'Video bekleniyor… ('+(max-attempt)+' kaldı)';
-  retryTimer = setTimeout(() => callBroadcaster(targetId, attempt+1), 4000);
+function scheduleRetry(targetId,attempt,max){
+  if(attempt>=max){showError('Yayın Bulunamadı','Yayıncıya ulaşılamadı.');return;}
+  retryTimer=setTimeout(()=>callBroadcaster(targetId,attempt+1),4000);
 }
 
 function handleViewerData(data) {
-  if (!data || !data.type) return;
-  if (data.type === 'stats') {
-    document.getElementById('v-likes').textContent = data.likes;
-    document.getElementById('v-unlikes').textContent = data.unlikes;
-    document.getElementById('v-viewers').textContent = data.viewers;
-  } else if (data.type === 'broadcast-killed') {
+  if(!data||!data.type)return;
+  if(data.type==='stats'){
+    document.getElementById('v-likes').textContent=data.likes;
+    document.getElementById('v-unlikes').textContent=data.unlikes;
+    document.getElementById('v-viewers').textContent=data.viewers;
+  }else if(data.type==='broadcast-killed'){
     showError('Yayın Düşürüldü','💔 İzleyiciler yayını oylamayla kaldırdı.');
   }
 }
 
 function sendReaction(type) {
-  if (!broadcasterConn) return;
-  let msgType = type, prev = null;
-  if (myReaction === type) { msgType = 'remove-' + type; myReaction = null; }
-  else { prev = myReaction; myReaction = type; }
-  try { broadcasterConn.send({type:msgType, prev}); } catch(e) {}
-  document.getElementById('btn-like').className = 'react-btn'+(myReaction==='like'?' active-like':'');
-  document.getElementById('btn-unlike').className = 'react-btn'+(myReaction==='unlike'?' active-unlike':'');
+  if(!broadcasterConn)return;
+  let msgType=type,prev=null;
+  if(myReaction===type){msgType='remove-'+type;myReaction=null;}
+  else{prev=myReaction;myReaction=type;}
+  try{broadcasterConn.send({type:msgType,prev});}catch(e){}
+  document.getElementById('btn-like').className='react-btn'+(myReaction==='like'?' active-like':'');
+  document.getElementById('btn-unlike').className='react-btn'+(myReaction==='unlike'?' active-unlike':'');
 }
 
 // ── INIT ──────────────────────────────────────────────────
 (function init() {
   if (typeof Peer === 'undefined') {
-    showError('Kütüphane Yüklenemedi','PeerJS yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
+    showError('Kütüphane Yüklenemedi','PeerJS yüklenemedi. Sayfayı yenileyip tekrar dene.');
     return;
   }
+  // QR okutunca ?v= ile gelir → doğrudan izleyici
   const params = new URLSearchParams(location.search);
   const v = params.get('v');
   if (v) {
-    // URL'de peer ID var → izleyici
     joinAsViewer(v);
   } else {
-    // URL'de ID yok → ana sayfa
-    show('home');
+    // Normal giriş → JSONBin kontrol et
+    checkAndWatch();
   }
 })();
 </script>
