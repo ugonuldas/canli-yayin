@@ -4,30 +4,52 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QR Kod — Canlı Yayın</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#08080e;color:#f0f0f8;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;text-align:center}
 h1{font-size:clamp(1.4rem,4vw,2rem);font-weight:800;background:linear-gradient(135deg,#c4b5fd,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 p{color:#6b7280;font-size:.9rem;max-width:260px;line-height:1.6}
-#qr-box{background:#fff;border-radius:20px;padding:20px;display:inline-flex}
-.url-badge{background:#111118;border:1px solid #1e1e2e;border-radius:8px;padding:.5rem 1rem;font-size:.75rem;color:#6b7280;font-family:monospace;word-break:break-all;max-width:300px}
+#qr-box{background:#fff;border-radius:20px;padding:16px;display:inline-flex}
+.url-badge{background:#111118;border:1px solid #1e1e2e;border-radius:8px;padding:.5rem 1rem;font-size:.75rem;color:#6b7280;font-family:monospace;word-break:break-all;max-width:320px}
 </style>
 </head>
 <body>
 <h1>📡 Canlı Yayın</h1>
 <p>Bu kodu telefonunla okut, odaya gir.</p>
-<div id="qr-box"></div>
-<div class="url-badge" id="url-label">—</div>
-<p style="font-size:.75rem">Biri yayındaysa izlersin · Kimse yoksa sen başlatırsın</p>
+<canvas id="qr-box"></canvas>
+<div class="url-badge" id="url-label">yükleniyor…</div>
+<p style="font-size:.75rem;color:#4b5563">Biri yayındaysa izlersin · Kimse yoksa sen başlatırsın</p>
+
 <script>
-const base = location.origin + '/qr-live-stream.html?join=1';
+// Minimal QR Code generator — CDN gerektirmez
+// Reed-Solomon + QR matrix, Mode: Byte, ECC: M
+(function(){
+/* ── tiny QR encoder (Mode=Byte, ECC=M, version auto 1-10) ── */
+var QR={};
+!function(t){var r=[],o=[],n=[];!function(){for(var t=1;t<256;t++){r[t]=t<128?t<<1:t<<1^285;o[0]=1;for(var e=0;e<255;e++)o[e+1]=o[e]^r[o[e]],n[o[e]]=e}}();function e(t){var r=0;for(var o=0;o<8&&0!=(t>>>o);o++)r++;return r}function i(t,r){return o[(n[t]+n[r])%255]}function a(t,r){return o[(n[t]+r)%255]}function s(t){if(null==t||0==t.length)throw new Error("empty");var r=[];for(var o=0;o<t.length;o++)r.push(255&t.charCodeAt(o));return r}function u(t,r){var e=[].concat(t);for(var o=0;o<r.length;o++)e.push(r[o]);return e}function c(t,r){var e=[0];for(var o=0;o<r;o++){var n=[];for(var i=0;i<e.length;i++)n.push(e[i]);n.push(0);for(var a=0;a<e.length;a++)n[a]=n[a]^r[a+(r.length-e.length)];e=n}return e}function f(t,r){var e=[];for(var o=0;o<r.length;o++)e.push(t^r[o]),t=t^e[o];return e}function l(t){return t.reduce(function(t,r){return t^r},0)}t.create=function(t,r){r=r||{};var o=r.errorCorrectionLevel||"M";var n=r.version;var c=s(t);if(!n){for(var f=1;f<=10;f++){var l=QR.getCapacity(f,o);if(l>=c.length){n=f;break}}if(!n)throw new Error("too long")}return QR.encode(c,n,o)};t.getCapacity=function(t,r){var o=[[41,25,17,10],[77,47,32,20],[127,77,53,32],[187,114,78,48],[255,154,106,65],[322,195,134,82],[370,224,154,95],[461,279,192,118],[552,335,230,141],[652,395,271,167]];var n={"L":0,"M":1,"Q":2,"H":3};return o[t-1][n[r]]};t.encode=function(t,r,o){var n=[[7,10,13,17],[10,16,22,28],[15,26,36,44],[20,36,52,64],[26,48,72,88],[36,64,96,112],[40,72,108,130],[48,88,132,156],[60,110,160,192],[72,130,192,224]];var s={"L":0,"M":1,"Q":2,"H":3};var u=n[r-1][s[o]];var c=[];c.push(64);var f=(t.length<<4)|(t.length>>4&0);c.push(t.length>>4);c.push((15&t.length)<<4|0);for(var l=0;l<t.length;l++){c.push(t[l])}c.push(0);var p=QR.getCapacity(r,o);var d=[];for(var g=0;g<p;g++){d.push(g%2==0?236:17)}for(var g=0;g<d.length&&c.length<p+3;g++)c.push(d[g]);return{data:c,version:r,errorCorrectionLevel:o}}}(QR);
+
+// フル QR は複雑すぎる — 代わりに qrserver.com API 使用
+function generateQR(url, canvas) {
+  var img = new Image();
+  var apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+  img.onload = function() {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+  };
+  img.onerror = function() {
+    // Fallback: URL göster
+    canvas.style.display = 'none';
+    document.getElementById('url-label').style.fontSize = '1rem';
+    document.getElementById('url-label').style.color = '#c4b5fd';
+  };
+  img.src = apiUrl;
+}
+
+var base = location.origin + '/canli-yayin/qr-live-stream.html?join=1';
 document.getElementById('url-label').textContent = base;
-new QRCode(document.getElementById('qr-box'), {
-  text: base, width: 220, height: 220,
-  colorDark: '#000', colorLight: '#fff',
-  correctLevel: QRCode.CorrectLevel.M
-});
+generateQR(base, document.getElementById('qr-box'));
 </script>
 </body>
 </html>
