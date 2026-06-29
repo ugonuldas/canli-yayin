@@ -243,43 +243,41 @@ function enterRoom() {
   document.getElementById('connecting-msg').textContent = 'Oda kontrol ediliyor…';
   document.getElementById('connecting-sub').textContent = 'Aktif yayın aranıyor';
 
-  // Geçici peer ile broadcaster'a ulaşmayı dene
-  const probe = makePeer(null);
+  // ROOM_ID ile peer aç:
+  // → 'open' gelirse: kimse yok → lobby
+  // → 'unavailable-id' gelirse: biri yayında → izleyici ol
+  const probe = makePeer(ROOM_ID);
+  let resolved = false;
 
   probe.on('open', () => {
-    // Broadcaster'a data connection dene — bağlanırsa yayın var
-    const conn = probe.connect(ROOM_ID, { reliable: true });
-    let resolved = false;
-
-    const succeed = () => {
-      if (resolved) return;
-      resolved = true;
-      probe.destroy();
-      joinAsViewer();
-    };
-
-    const fail = () => {
-      if (resolved) return;
-      resolved = true;
-      probe.destroy();
-      show('lobby');
-    };
-
-    conn.on('open', succeed);
-    conn.on('error', fail);
-    setTimeout(() => { if (!resolved) fail(); }, 4000);
+    if (resolved) return;
+    resolved = true;
+    // Kimse yok, yayıncı olmak isterse diye lobby'e git
+    // Ama önce bu peer'ı kapat (yayıncı olmak isterse yeniden açar)
+    try { probe.destroy(); } catch(e) {}
+    show('lobby');
   });
 
   probe.on('error', (err) => {
-    if (err.type === 'peer-unavailable') {
-      // Yayıncı yok
+    if (resolved) return;
+    resolved = true;
+    if (err.type === 'unavailable-id') {
+      // Biri zaten ROOM_ID'yi tutmuş → yayın var → izleyici ol
       try { probe.destroy(); } catch(e) {}
-      show('lobby');
+      joinAsViewer();
     } else {
       try { probe.destroy(); } catch(e) {}
       showError('Bağlantı Hatası', 'Sunucuya ulaşılamadı (' + err.type + '). İnternet bağlantını kontrol et.');
     }
   });
+
+  setTimeout(() => {
+    if (!resolved) {
+      resolved = true;
+      try { probe.destroy(); } catch(e) {}
+      show('lobby');
+    }
+  }, 6000);
 }
 
 // ── BROADCASTER ───────────────────────────────────────────
@@ -593,3 +591,4 @@ function sendReaction(type) {
 </script>
 </body>
 </html>
+
