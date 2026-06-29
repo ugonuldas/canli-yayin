@@ -321,14 +321,8 @@ async function startBroadcast() {
     try { await binSet({ broadcasterId: id }); }
     catch(e) { showError('Kayıt Hatası', 'Yayın ID kaydedilemedi. İnternet bağlantını kontrol et.'); return; }
 
-    // QR üret — bu sayfanın URL'si + ?v=ID
-    const base = location.href.split('?')[0];
-    const url = base + '?v=' + id;
-    try {
-      drawQR(makeQR(url), document.getElementById('qr-canvas'), 6);
-    } catch(e) { console.error('QR hata:', e); }
-
-    show('qr');
+    // Direkt kamerayı aç
+    await openCamera();
   });
 
   // Yayıncı artık izleyiciyi kendisi arıyor (connection.on open'da)
