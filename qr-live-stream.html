@@ -168,7 +168,7 @@ const UNLIKE_THRESHOLD = (n) => Math.max(3, Math.ceil(n * 2 / 3));
 let peer = null, localStream = null;
 let dataChannels = {}, viewerCalls = {};
 let broadcasterConn = null;
-let viewerCount = 0, likes = 0, unlikes = 0, myReaction = null;
+let viewerCount = 0, likes = 0, unlikes = 0, myReaction = null, isBroadcaster = false;
 let retryTimer = null;
 
 // ── UI ────────────────────────────────────────────────────
@@ -209,6 +209,22 @@ async function binSet(data) {
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': BIN_KEY, 'X-Access-Key': BIN_ACCESS_KEY },
     body: JSON.stringify(data)
   });
+}
+
+let heartbeatTimer = null;
+const HEARTBEAT_INTERVAL = 15000; // 15 saniye
+const HEARTBEAT_TIMEOUT = 35000;  // 35 saniye sinyal gelmezse yayın ölü sayılır
+
+function startHeartbeat(broadcasterId) {
+  stopHeartbeat();
+  heartbeatTimer = setInterval(async () => {
+    try { await binSet({ broadcasterId: broadcasterId, lastSeen: Date.now() }); }
+    catch(e) { /* sessiz geç */ }
+  }, HEARTBEAT_INTERVAL);
+}
+
+function stopHeartbeat() {
+  if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
 }
 
 // ── QR ────────────────────────────────────────────────────
@@ -314,11 +330,13 @@ async function checkAndWatch() {
   document.getElementById('conn-sub').textContent = '';
   try {
     const rec = await binGet();
-    if (rec && rec.broadcasterId) {
-      // Yayın var → izleyici ol
+    const isStale = rec && rec.lastSeen && (Date.now() - rec.lastSeen > HEARTBEAT_TIMEOUT);
+    if (rec && rec.broadcasterId && !isStale) {
+      // Yayın var ve aktif → izleyici ol
       joinAsViewer(rec.broadcasterId);
     } else {
-      // Yayın yok → ana sayfa
+      // Yayın yok veya zaman aşımına uğramış → ana sayfa
+      if (isStale) { try { await binSet({ broadcasterId: null }); } catch(e) {} }
       show('home');
       toast('Şu an aktif yayın yok.');
     }
@@ -338,9 +356,11 @@ async function startBroadcast() {
   peer = makePeer(null);
 
   peer.on('open', async (id) => {
-    // ID'yi JSONBin'e yaz
-    try { await binSet({ broadcasterId: id }); }
+    // ID'yi JSONBin'e yaz + heartbeat başlat
+    try { await binSet({ broadcasterId: id, lastSeen: Date.now() }); }
     catch(e) { showError('Kayıt Hatası', 'Yayın ID kaydedilemedi. İnternet bağlantını kontrol et.'); return; }
+    isBroadcaster = true;
+    startHeartbeat(id);
 
     // Kamera iznini kullanıcı etkileşimiyle almak için buton göster
     show('cam-prompt');
@@ -458,11 +478,12 @@ function startStream() {
 }
 
 async function stopBroadcast() {
+  stopHeartbeat();
   try { await binSet({ broadcasterId: null }); } catch(e) {}
   if (localStream) localStream.getTracks().forEach(t=>t.stop());
   if (peer) { try{peer.destroy();}catch(e){} }
   peer=null; localStream=null; dataChannels={}; viewerCalls={};
-  viewerCount=0; likes=0; unlikes=0;
+  viewerCount=0; likes=0; unlikes=0; isBroadcaster=false;
   location.href = 'index.html';
 }
 
@@ -533,15 +554,9 @@ function sendReaction(type) {
   document.getElementById('btn-like').className='react-btn'+(myReaction==='like'?' active-like':'');
   document.getElementById('btn-unlike').className='react-btn'+(myReaction==='unlike'?' active-unlike':'');
 }
-// Sayfa kapanırken yayını temizle
-window.addEventListener('beforeunload', () => {
-  if (peer && isBroadcaster) {
-    navigator.sendBeacon(
-      BIN_URL,
-      JSON.stringify({record: {broadcasterId: null}})
-    );
-  }
-});
+// NOT: Sayfa kapanırken senkron temizlik garantili değil (sendBeacon JSONBin
+// özel header'larını desteklemiyor). Heartbeat sistemi (15s aralık, 35s timeout)
+// asıl güvenceyi sağlıyor: yayıncı kapanırsa en geç 35sn içinde "yayın yok" görünür.
 // ── INIT ──────────────────────────────────────────────────
 (function init() {
   if (typeof Peer === 'undefined') {
@@ -561,6 +576,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
